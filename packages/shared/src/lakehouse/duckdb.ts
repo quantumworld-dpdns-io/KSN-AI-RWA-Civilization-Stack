@@ -76,6 +76,15 @@ export class DuckDBClient {
     });
   }
 
+  async runQuery(sql: string, params: any[] = []): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.conn.all(sql, ...params, (err, res) => {
+        if (err) reject(err);
+        else resolve(res);
+      });
+    });
+  }
+
   private run(sql: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.conn.run(sql, (err) => (err ? reject(err) : resolve()));
