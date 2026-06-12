@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@aks/core": ["packages/core/src"],
+      "@aks/oracle-sim": ["packages/oracle-sim/src"],
+      "@aks/shared": ["packages/shared/src"],
+      "@aks/contracts": ["packages/contracts/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build", ".turbo"]
+}
