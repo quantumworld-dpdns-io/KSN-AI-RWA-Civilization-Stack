@@ -1,0 +1,14 @@
+services:
+  oracle-sim:
+    restart: always
+
+  web:
+    restart: always
+    ports:
+      - "80:80"
+
+  redis:
+    restart: always
+
+  postgres:
+    restart: always

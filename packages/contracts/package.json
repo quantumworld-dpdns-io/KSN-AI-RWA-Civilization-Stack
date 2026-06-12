@@ -1,0 +1,27 @@
+{
+  "name": "@aks/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "hardhat compile",
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "dev": "hardhat node",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "hardhat": "^3.9.0",
+    "solhint": "^6.2.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

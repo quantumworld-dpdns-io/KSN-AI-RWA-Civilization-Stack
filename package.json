@@ -1,0 +1,53 @@
+{
+  "name": "autonomous-kardashev-rwa-stack",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Autonomous Kardashev RWA Stack: energy, compute, AI agency, and DePIN civilization simulator.",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @aks/web --filter @aks/oracle-sim dev",
+    "dev:oracle": "pnpm --filter @aks/oracle-sim dev",
+    "dev:web": "pnpm --filter @aks/web dev",
+    "dev:contracts": "pnpm --filter @aks/contracts dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "contracts:compile": "pnpm --filter @aks/contracts compile",
+    "audit": "pnpm audit",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "typecheck": "pnpm -r typecheck",
+    "prepare": "husky install",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "keywords": [
+    "rwa",
+    "depin",
+    "ai-agent",
+    "kardashev",
+    "oracle",
+    "compute",
+    "energy",
+    "ethereum"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "turbo": "^2.5.4",
+    "typescript": "^5.9.3",
+    "only-allow": "^1.2.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "duckdb",
+      "@parcel/watcher"
+    ]
+  }
+}
