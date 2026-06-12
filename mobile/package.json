@@ -4,20 +4,21 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "predev": "pnpm --filter @aks/core build",
-    "dev": "expo start",
-    "prebuild": "pnpm --filter @aks/core build",
-    "build": "expo export",
-    "pretypecheck": "pnpm --filter @aks/core build",
+    "dev": "BROWSER=none expo start --tunnel",
+    "web": "expo start --web --port 0",
+    "web:ci": "CI=1 BROWSER=none expo start --web --offline --port 0",
+    "build": "tsc --noEmit -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@aks/core": "workspace:*",
     "expo": "^56.0.11",
     "expo-status-bar": "^3.0.8",
+    "expo-secure-store": "^56.0.4",
     "react": "^19.1.0",
-    "react-native": "^0.86.0"
+    "react-dom": "^19.1.0",
+    "react-native": "^0.86.0",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "^19.1.12",

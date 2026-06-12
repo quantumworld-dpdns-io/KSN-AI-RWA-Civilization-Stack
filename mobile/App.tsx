@@ -1,29 +1,44 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
 import { NasaScreen } from "./src/screens/NasaScreen";
 import { EnergyScreen } from "./src/screens/EnergyScreen";
 import { AssetsScreen } from "./src/screens/AssetsScreen";
+import { SettingsScreen } from "./src/screens/SettingsScreen";
+import { RefreshControl } from "./src/components/RefreshControl";
 import { NothingButton, NothingCard, NothingPill, SectionTitle } from "./src/components/ui";
 import { nothing } from "./src/theme/nothing";
 import { fetchApod, type NasaApod } from "./src/data/nasa";
 import { fetchElectricityPrices, type ElectricityPriceRow } from "./src/data/electricity";
+import {
+  clearCredentialSettings,
+  loadCredentialSettings,
+  saveCredentialSettings,
+  type CredentialSettings
+} from "./src/storage/credentials";
 
-type TabKey = "dashboard" | "nasa" | "energy" | "assets";
+type TabKey = "dashboard" | "nasa" | "energy" | "assets" | "settings";
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "dashboard", label: "Overview" },
   { key: "nasa", label: "NASA" },
   { key: "energy", label: "Energy" },
-  { key: "assets", label: "Assets" }
+  { key: "assets", label: "Assets" },
+  { key: "settings", label: "Settings" }
 ];
 
-const nasaApiKey = process.env.EXPO_PUBLIC_NASA_API_KEY ?? "";
-const apifyToken = process.env.EXPO_PUBLIC_APIFY_TOKEN ?? "";
+const envCredentials: CredentialSettings = {
+  nasaApiKey: process.env.EXPO_PUBLIC_NASA_API_KEY ?? "",
+  apifyToken: process.env.EXPO_PUBLIC_APIFY_TOKEN ?? ""
+};
 
 export default function App() {
   const [tab, setTab] = useState<TabKey>("dashboard");
+  const [draftCredentials, setDraftCredentials] = useState<CredentialSettings>({ nasaApiKey: "", apifyToken: "" });
+  const [storedCredentials, setStoredCredentials] = useState<CredentialSettings>({ nasaApiKey: "", apifyToken: "" });
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsSavedAt, setSettingsSavedAt] = useState<string | null>(null);
   const [apod, setApod] = useState<NasaApod | null>(null);
   const [apodError, setApodError] = useState<string | null>(null);
   const [apodLoading, setApodLoading] = useState(true);
@@ -32,18 +47,60 @@ export default function App() {
   const [energyLoading, setEnergyLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const apiKeyState = nasaApiKey ? "configured" : "demo";
-  const apifyState = apifyToken ? "configured" : "fallback";
+  const effectiveCredentials = useMemo(
+    () => ({
+      nasaApiKey: storedCredentials.nasaApiKey.trim() || envCredentials.nasaApiKey,
+      apifyToken: storedCredentials.apifyToken.trim() || envCredentials.apifyToken
+    }),
+    [storedCredentials]
+  );
+
+  const apiKeyState = storedCredentials.nasaApiKey.trim() ? "stored" : envCredentials.nasaApiKey ? "env" : "demo";
+  const apifyState = storedCredentials.apifyToken.trim() ? "stored" : envCredentials.apifyToken ? "env" : "fallback";
+
+  useEffect(() => {
+    let alive = true;
+
+    void loadCredentialSettings()
+      .then((saved) => {
+        if (!alive) {
+          return;
+        }
+
+        if (saved) {
+          setDraftCredentials(saved);
+          setStoredCredentials(saved);
+          setSettingsSavedAt("stored");
+        } else {
+          setDraftCredentials({ nasaApiKey: "", apifyToken: "" });
+          setStoredCredentials({ nasaApiKey: "", apifyToken: "" });
+          setSettingsSavedAt(null);
+        }
+      })
+      .finally(() => {
+        if (alive) {
+          setSettingsLoading(false);
+        }
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const loadData = useCallback(async () => {
+    if (settingsLoading) {
+      return;
+    }
+
     setApodLoading(true);
     setEnergyLoading(true);
     setApodError(null);
     setEnergyError(null);
 
     const [apodResult, energyResult] = await Promise.allSettled([
-      fetchApod(nasaApiKey),
-      fetchElectricityPrices(apifyToken)
+      fetchApod(effectiveCredentials.nasaApiKey),
+      fetchElectricityPrices(effectiveCredentials.apifyToken)
     ]);
 
     if (apodResult.status === "fulfilled") {
@@ -59,17 +116,47 @@ export default function App() {
       setEnergyError(energyResult.reason instanceof Error ? energyResult.reason.message : "Failed to load electricity data");
     }
     setEnergyLoading(false);
-  }, []);
+  }, [effectiveCredentials.apifyToken, effectiveCredentials.nasaApiKey, settingsLoading]);
 
   useEffect(() => {
+    if (settingsLoading) {
+      return;
+    }
+
     void loadData();
-  }, [loadData]);
+  }, [loadData, settingsLoading]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   }, [loadData]);
+
+  const onSaveSettings = useCallback(async () => {
+    try {
+      await saveCredentialSettings(draftCredentials);
+      setStoredCredentials(draftCredentials);
+      setSettingsSavedAt("stored");
+    } catch (error) {
+      Alert.alert("Save failed", error instanceof Error ? error.message : "Unable to save local credentials.");
+    }
+  }, [draftCredentials]);
+
+  const onClearSettings = useCallback(async () => {
+    try {
+      await clearCredentialSettings();
+      const cleared = { nasaApiKey: "", apifyToken: "" };
+      setDraftCredentials(cleared);
+      setStoredCredentials(cleared);
+      setSettingsSavedAt(null);
+    } catch (error) {
+      Alert.alert("Clear failed", error instanceof Error ? error.message : "Unable to clear local credentials.");
+    }
+  }, []);
+
+  const onResetSettings = useCallback(() => {
+    setDraftCredentials(storedCredentials);
+  }, [storedCredentials]);
 
   const CurrentScreen = useMemo(() => {
     switch (tab) {
@@ -79,11 +166,42 @@ export default function App() {
         return <EnergyScreen rows={electricityRows} loading={energyLoading} error={energyError} onRetry={loadData} apiState={apifyState} />;
       case "assets":
         return <AssetsScreen />;
+      case "settings":
+        return (
+          <SettingsScreen
+            draft={draftCredentials}
+            active={storedCredentials}
+            onChange={setDraftCredentials}
+            onSave={onSaveSettings}
+            onClear={onClearSettings}
+            onReset={onResetSettings}
+            loading={settingsLoading}
+            savedAt={settingsSavedAt}
+          />
+        );
       case "dashboard":
       default:
         return <DashboardScreen />;
     }
-  }, [apiKeyState, apod, apodError, apodLoading, apifyState, electricityRows, energyError, energyLoading, loadData, tab]);
+  }, [
+    apiKeyState,
+    apod,
+    apodError,
+    apodLoading,
+    apifyState,
+    draftCredentials,
+    electricityRows,
+    energyError,
+    energyLoading,
+    loadData,
+    onClearSettings,
+    onResetSettings,
+    onSaveSettings,
+    settingsLoading,
+    settingsSavedAt,
+    storedCredentials,
+    tab
+  ]);
 
   return (
     <View style={styles.root}>
@@ -110,6 +228,7 @@ export default function App() {
               subtitle="NASA APOD and the Apify electricity monitor are fetched on demand. Core asset math comes from the repo’s shared simulation package."
             />
             <View style={styles.statusRow}>
+              <StatusChip label={settingsLoading ? "settings loading" : "settings ready"} />
               <StatusChip label={`NASA ${apiKeyState}`} />
               <StatusChip label={`Apify ${apifyState}`} />
               <StatusChip label={`APOD ${apodLoading ? "loading" : "ready"}`} />
@@ -139,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: nothing.colors.bg
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: nothing.colors.bg,
     opacity: 1
   },

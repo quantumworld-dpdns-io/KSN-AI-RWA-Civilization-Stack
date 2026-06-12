@@ -10,6 +10,9 @@
     "splash": {
       "backgroundColor": "#080808"
     },
+    "web": {
+      "bundler": "metro"
+    },
     "android": {
       "package": "com.ksn.mobile"
     },

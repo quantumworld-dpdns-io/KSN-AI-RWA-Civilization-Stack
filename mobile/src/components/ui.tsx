@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, Text, View, type DimensionValue, type StyleProp, type ViewStyle } from "react-native";
 import { nothing } from "../theme/nothing";
 
 export function SectionTitle(props: { eyebrow: string; title: string; subtitle?: string }) {
@@ -53,7 +53,7 @@ export function StatBlock(props: { label: string; value: string; helper?: string
 }
 
 export function ProgressBar(props: { value: number; accent?: boolean }) {
-  const width = `${Math.max(0, Math.min(100, props.value * 100))}%`;
+  const width: DimensionValue = `${Math.max(0, Math.min(100, props.value * 100))}%`;
   return (
     <View style={styles.track}>
       <View style={[styles.fill, props.accent ? styles.fillAccent : styles.fillNeutral, { width }]} />

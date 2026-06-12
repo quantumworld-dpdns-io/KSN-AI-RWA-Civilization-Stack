@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SAMPLE_ASSETS, describeAgencyStage, estimateAutonomyRisk, simulateYieldDistribution, snapshotAsset } from "@aks/core";
+import { SAMPLE_ASSETS, describeAgencyStage, estimateAutonomyRisk, simulateYieldDistribution, snapshotAsset } from "../../../packages/core/src/index";
 import { NothingCard, NothingPill, SectionTitle } from "../components/ui";
 import { nothing } from "../theme/nothing";
 import { formatKsn, formatMoney, formatPercent, formatWatts } from "../utils/format";
@@ -107,4 +107,3 @@ const styles = StyleSheet.create({
     marginTop: 2
   }
 });
-

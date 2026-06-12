@@ -4,7 +4,13 @@ import type { NasaApod } from "../data/nasa";
 import { NothingCard, NothingPill, SectionTitle } from "../components/ui";
 import { nothing } from "../theme/nothing";
 
-export function NasaScreen(props: { apod: NasaApod | null; loading: boolean; error: string | null; onRetry: () => void; apiKeyState: "configured" | "demo" }) {
+export function NasaScreen(props: {
+  apod: NasaApod | null;
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  apiKeyState: "stored" | "env" | "demo";
+}) {
   const imageSource = useMemo(() => {
     if (!props.apod || props.apod.media_type !== "image") return null;
     return { uri: props.apod.hdurl ?? props.apod.url };
@@ -20,7 +26,10 @@ export function NasaScreen(props: { apod: NasaApod | null; loading: boolean; err
 
       <NothingCard>
         <View style={styles.rowHeader}>
-          <NothingPill label={props.apiKeyState === "configured" ? "API key active" : "DEMO key"} tone={props.apiKeyState === "configured" ? "success" : "neutral"} />
+          <NothingPill
+            label={props.apiKeyState === "stored" ? "API key stored" : props.apiKeyState === "env" ? "API key from env" : "DEMO key"}
+            tone={props.apiKeyState === "demo" ? "neutral" : props.apiKeyState === "stored" ? "success" : "accent"}
+          />
           <NothingPill label={props.apod?.date ?? "Loading"} />
         </View>
 
@@ -150,4 +159,3 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   }
 });
-

@@ -6,7 +6,7 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "pnpm --parallel --filter @aks/web --filter @aks/oracle-sim dev",
-    "dev:mobile": "pnpm --filter @aks/mobile dev",
+    "dev:mobile": "sh scripts/dev-mobile.sh",
     "dev:oracle": "pnpm --filter @aks/oracle-sim dev",
     "dev:web": "pnpm --filter @aks/web dev",
     "build:mobile": "pnpm --filter @aks/mobile build",

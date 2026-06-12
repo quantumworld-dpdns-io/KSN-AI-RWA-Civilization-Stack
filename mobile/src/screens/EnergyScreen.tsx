@@ -9,7 +9,7 @@ export function EnergyScreen(props: {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  apiState: "configured" | "fallback";
+  apiState: "stored" | "env" | "fallback";
 }) {
   const highest = Math.max(...props.rows.map((row) => row.maximumPrice || row.currentPrice || 1), 1);
 
@@ -23,7 +23,10 @@ export function EnergyScreen(props: {
 
       <NothingCard>
         <View style={styles.rowHeader}>
-          <NothingPill label={props.apiState === "configured" ? "Apify live" : "Fallback data"} tone={props.apiState === "configured" ? "success" : "neutral"} />
+          <NothingPill
+            label={props.apiState === "stored" ? "Apify stored" : props.apiState === "env" ? "Apify env" : "Fallback data"}
+            tone={props.apiState === "fallback" ? "neutral" : props.apiState === "stored" ? "success" : "accent"}
+          />
           <NothingPill label={`${props.rows.length} markets`} />
         </View>
 
@@ -119,4 +122,3 @@ const styles = StyleSheet.create({
     lineHeight: 20
   }
 });
-
