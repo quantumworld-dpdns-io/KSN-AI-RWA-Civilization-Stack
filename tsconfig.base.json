@@ -17,10 +17,10 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@aks/core": ["packages/core/src"],
-      "@aks/oracle-sim": ["packages/oracle-sim/src"],
-      "@aks/shared": ["packages/shared/src"],
-      "@aks/contracts": ["packages/contracts/src"]
+      "@aks/core": ["packages/core/src/index.ts"],
+      "@aks/oracle-sim": ["packages/oracle-sim/src/index.ts"],
+      "@aks/shared": ["packages/shared/src/index.ts"],
+      "@aks/contracts": ["packages/contracts/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist", "build", ".turbo"]

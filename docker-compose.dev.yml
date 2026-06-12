@@ -1,0 +1,24 @@
+services:
+  oracle-sim:
+    build:
+      context: .
+      dockerfile: infra/oracle.Dockerfile
+      target: builder
+    command: ["pnpm", "--filter", "@aks/oracle-sim", "dev"]
+    volumes:
+      - ./packages:/app/packages
+      - ./apps:/app/apps
+    environment:
+      - NODE_ENV=development
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+      target: builder
+    command: ["pnpm", "--filter", "@aks/web", "dev"]
+    volumes:
+      - ./packages:/app/packages
+      - ./apps:/app/apps
+    environment:
+      - NODE_ENV=development
