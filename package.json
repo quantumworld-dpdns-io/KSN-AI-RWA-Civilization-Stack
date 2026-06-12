@@ -6,6 +6,9 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "pnpm --parallel --filter @aks/web --filter @aks/oracle-sim dev",
+    "dev:oracle": "pnpm --filter @aks/oracle-sim dev",
+    "dev:web": "pnpm --filter @aks/web dev",
+    "dev:contracts": "pnpm --filter @aks/contracts dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
