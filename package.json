@@ -13,7 +13,8 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "typecheck": "pnpm -r typecheck",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "preinstall": "npx only-allow pnpm"
   },
   "keywords": [
     "rwa",
@@ -31,7 +32,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "turbo": "^2.5.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "only-allow": "^1.2.1"
   },
   "engines": {
     "node": ">=20.0.0"
