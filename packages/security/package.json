@@ -1,0 +1,13 @@
+{
+  "name": "@aks/security",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Robot framework tests placeholder\""
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

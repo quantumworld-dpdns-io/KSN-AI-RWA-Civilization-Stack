@@ -17,6 +17,9 @@ importers:
       lint-staged:
         specifier: ^15.5.0
         version: 15.5.2
+      only-allow:
+        specifier: ^1.2.1
+        version: 1.2.2
       turbo:
         specifier: ^2.5.4
         version: 2.9.18
@@ -58,6 +61,8 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@25.9.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(tsx@4.22.4)(yaml@2.9.0))
 
+  packages/config: {}
+
   packages/contracts:
     dependencies:
       '@openzeppelin/contracts':
@@ -97,6 +102,9 @@ importers:
       '@aks/core':
         specifier: workspace:*
         version: link:../core
+      '@aks/shared':
+        specifier: workspace:*
+        version: link:../shared
       fastify:
         specifier: ^5.2.1
         version: 5.8.5
@@ -114,6 +122,14 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@25.9.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(tsx@4.22.4)(yaml@2.9.0))
 
+  packages/quantum:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/security: {}
+
   packages/shared:
     dependencies:
       ioredis:
@@ -129,6 +145,15 @@ importers:
       vitest:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@25.9.3)(lightningcss@1.32.0)
+
+  packages/testing:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@25.9.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(tsx@4.22.4)(yaml@2.9.0))
 
 packages:
 
@@ -1728,6 +1753,10 @@ packages:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
 
+  only-allow@1.2.2:
+    resolution: {integrity: sha512-uxyNYDsCh5YIJ780G7hC5OHjVUr9reHsbZNMM80L9tZlTpb3hUzb36KXgW4ZUGtJKQnGA3xegmWg1BxhWV0jJA==}
+    hasBin: true
+
   ordinal@1.0.3:
     resolution: {integrity: sha512-cMddMgb2QElm8G7vdaa02jhUNbTSrhsgAGUz1OokD83uJTwSUn+nKoNoKVVaRa08yF6sgfO7Maou1+bgLd9rdQ==}
 
@@ -2249,6 +2278,10 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  which-pm-runs@1.1.0:
+    resolution: {integrity: sha512-n1brCuqClxfFfq/Rb0ICg9giSZqCS+pLtccdag6C2HyufBrh3fBOiy9nb6ggRMvWOVH5GrdJskj5iGTZNxd7SA==}
+    engines: {node: '>=4'}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -3652,6 +3685,10 @@ snapshots:
     dependencies:
       mimic-function: 5.0.1
 
+  only-allow@1.2.2:
+    dependencies:
+      which-pm-runs: 1.1.0
+
   ordinal@1.0.3: {}
 
   p-cancelable@3.0.0: {}
@@ -4132,6 +4169,8 @@ snapshots:
       '@types/node': 25.9.3
     transitivePeerDependencies:
       - msw
+
+  which-pm-runs@1.1.0: {}
 
   which@2.0.2:
     dependencies:

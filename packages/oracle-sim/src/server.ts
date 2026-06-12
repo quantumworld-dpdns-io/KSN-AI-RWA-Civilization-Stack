@@ -1,10 +1,21 @@
 import Fastify from "fastify";
 import { z } from "zod";
 import { getAssetTelemetry, listTelemetry } from "./telemetry";
+import { getRedisClient } from "@aks/shared";
 
 const app = Fastify({ logger: true });
 
 app.get("/health", async () => ({ status: "ok", service: "aks-oracle-sim" }));
+
+app.get("/health/redis", async (request, reply) => {
+  try {
+    const client = getRedisClient();
+    const result = await client.ping();
+    return { status: "ok", redis: result === "PONG" ? "connected" : "unknown" };
+  } catch (err: any) {
+    return reply.code(503).send({ status: "error", error: err.message });
+  }
+});
 
 app.get("/telemetry", async () => ({ assets: listTelemetry() }));
 
