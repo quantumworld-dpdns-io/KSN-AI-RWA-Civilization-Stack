@@ -4,3 +4,5 @@ export * from './arrow';
 export * from './schema';
 export * from './catalog';
 export * from './query';
+export * from './pipeline';
+export * from './metrics';
