@@ -46,7 +46,11 @@ Responsible for deterministic calculations:
 
 Located in `packages/oracle-sim`.
 
-Provides mock telemetry over HTTP:
+Provides mock telemetry over HTTP.
+
+The current repo ships `packages/oracle-sim` as the executable oracle path; planned docs may mention a future `packages/oracle` package for multi-source verification and aggregation.
+
+Endpoints:
 
 ```txt
 GET /health

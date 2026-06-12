@@ -193,6 +193,10 @@ A realistic MVP would not begin with Dyson swarms. It would begin with:
 5. AI agent that only optimizes pricing and maintenance scheduling.
 6. Human-controlled emergency override.
 
+In one sentence, the MVP is:
+
+`sample asset telemetry -> oracle simulation -> core KSN snapshot -> contract settlement -> dashboard`
+
 ---
 
 ## 9. Conclusion

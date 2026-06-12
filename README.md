@@ -21,6 +21,14 @@ Where:
 
 > This is a speculative research prototype. It is not legal, financial, or investment advice.
 
+## MVP boundary
+
+The near-term MVP is a single loop:
+
+`sample asset telemetry -> oracle simulation -> core KSN snapshot -> contract skeleton -> dashboard`
+
+The implementation goal is to prove that this loop is coherent, testable, and reproducible before expanding into multi-source oracle logic, broader asset classes, or autonomous AI governance.
+
 ---
 
 ## Repository layout
@@ -111,7 +119,11 @@ The simulation engine. It models:
 
 ### `@aks/oracle-sim`
 
-A mock oracle service returning simulated telemetry:
+The current mock oracle service returning simulated telemetry.
+
+Future roadmap docs may refer to a richer `packages/oracle` layer, but the repository currently ships `packages/oracle-sim` as the executable oracle path.
+
+It returns:
 
 - Energy output.
 - Hashrate / compute throughput.

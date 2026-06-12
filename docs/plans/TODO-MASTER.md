@@ -2,6 +2,8 @@
 
 **Total Todos: 1,010** across **10 Phases** | **Timeline: 18–24 Months**
 
+> Naming note: several TODO items refer to future packages such as `packages/oracle` and `packages/agents`. The current repository ships `packages/oracle-sim`, `packages/core`, `packages/shared`, `packages/contracts`, `packages/quantum` as a stub, and `apps/web`. Treat the TODO package names as roadmap targets unless a matching package already exists in the repo.
+
 ---
 
 ## Phase Overview
