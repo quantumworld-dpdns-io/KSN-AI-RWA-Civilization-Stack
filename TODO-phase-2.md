@@ -1,0 +1,129 @@
+# Phase 2: Core Simulation Engine Enhancement
+
+**Duration: Months 2–5 | Todos: 105 | Commit prefix: `feat`, `refactor`**
+
+---
+
+## 2.1 Extended Type System (Todos 111–130)
+
+- [ ] TODO-111: Add `EnergySource` type (solar, wind, nuclear, fusion, geothermal, tidal)
+- [ ] TODO-112: Add `ComputeArchitecture` type (GPU, ASIC, FPGA, TPU, QPU)
+- [ ] TODO-113: Add `NetworkTopology` type (mesh, hub-spoke, star, orbital-ring)
+- [ ] TODO-114: Add `GeopoliticalRegion` type enum
+- [ ] TODO-115: Add `ComplianceStatus` type for regulatory state
+- [ ] TODO-116: Extend `InfrastructureAsset` with `energySource` field
+- [ ] TODO-117: Extend `InfrastructureAsset` with `computeArchitecture` field
+- [ ] TODO-118: Extend `InfrastructureAsset` with `topology` field
+- [ ] TODO-119: Extend `InfrastructureAsset` with `region` field
+- [ ] TODO-120: Extend `InfrastructureAsset` with `complianceStatus` field
+- [ ] TODO-121: Add `QuantumComputeAsset` type extending base
+- [ ] TODO-122: Add `OrbitalAsset` type for space-based infrastructure
+- [ ] TODO-123: Add `FusionAsset` type for fusion energy systems
+- [ ] TODO-124: Add `DysonSwarmNode` type for stellar-scale
+- [ ] TODO-125: Create `packages/core/src/types/energy.ts`
+- [ ] TODO-126: Create `packages/core/src/types/compute.ts`
+- [ ] TODO-127: Create `packages/core/src/types/region.ts`
+- [ ] TODO-128: Create `packages/core/src/types/quantum.ts`
+- [ ] TODO-129: Create `packages/core/src/types/orbital.ts`
+- [ ] TODO-130: Update barrel exports for new type modules
+
+## 2.2 Advanced KSN Metrics (Todos 131–155)
+
+- [ ] TODO-131: Create `packages/core/src/metrics/efficiency.ts` energy efficiency metrics
+- [ ] TODO-132: Add `computePerWatt` metric (operations per watt)
+- [ ] TODO-133: Add `costPerCompute` metric (USD per TFLOPS)
+- [ ] TODO-134: Add `carbonIntensity` metric (kgCO2 per kWh)
+- [ ] TODO-135: Add `availabilityScore` metric (uptime percentage)
+- [ ] TODO-136: Add `redundancyFactor` metric (N+1, N+2)
+- [ ] TODO-137: Create `packages/core/src/metrics/kardashev.ts` advanced Kardashev calcs
+- [ ] TODO-138: Add `extendedKardashevType` with compute weight
+- [ ] TODO-139: Add `kardashevProgress` (percentage toward next type)
+- [ ] TODO-140: Add `civilizationEnergyCapacity` (total energy budget)
+- [ ] TODO-141: Add `civilizationComputeCapacity` (total compute budget)
+- [ ] TODO-142: Create `packages/core/src/metrics/risk.ts` risk scoring
+- [ ] TODO-143: Add `operationalRisk` score (downtime, maintenance)
+- [ ] TODO-144: Add `marketRisk` score (price volatility, demand)
+- [ ] TODO-145: Add `regulatoryRisk` score (compliance changes)
+- [ ] TODO-146: Add `technicalRisk` score (architecture obsolescence)
+- [ ] TODO-147: Add `environmentalRisk` score (carbon, climate)
+- [ ] TODO-148: Create `packages/core/src/metrics/composite.ts` composite metrics
+- [ ] TODO-149: Add `totalRiskScore` weighted composite
+- [ ] TODO-150: Add `investmentAttractiveness` score
+- [ ] TODO-151: Add `sustainabilityIndex` score
+- [ ] TODO-152: Add `aiReadinessScore` (how ready for AI governance)
+- [ ] TODO-153: Create `packages/core/src/metrics/index.ts` barrel
+- [ ] TODO-154: Add metric validation functions
+- [ ] TODO-155: Add metric comparison utilities
+
+## 2.3 Vector Database Integration (Todos 156–175)
+
+- [ ] TODO-156: Add `chromadb` dependency to packages/shared
+- [ ] TODO-157: Create `packages/shared/src/vector/chroma-client.ts`
+- [ ] TODO-158: Create `packages/shared/src/vector/qdrant-client.ts`
+- [ ] TODO-159: Add `lancedb` dependency
+- [ ] TODO-160: Create `packages/shared/src/vector/lancedb-client.ts`
+- [ ] TODO-161: Create `packages/shared/src/vector/types.ts` vector types
+- [ ] TODO-162: Create `packages/shared/src/vector/embeddings.ts` embedding functions
+- [ ] TODO-163: Add `openai` embedding support
+- [ ] TODO-164: Add local embedding support via `@xenova/transformers`
+- [ ] TODO-165: Create `packages/shared/src/vector/store.ts` unified vector store
+- [ ] TODO-166: Add similarity search interface
+- [ ] TODO-167: Add hybrid search (vector + keyword)
+- [ ] TODO-168: Add metadata filtering
+- [ ] TODO-169: Create `packages/shared/src/vector/__tests__/store.test.ts`
+- [ ] TODO-170: Create `packages/shared/src/vector/__tests__/embeddings.test.ts`
+- [ ] TODO-171: Add ChromaDB to docker-compose.yml
+- [ ] TODO-172: Add Qdrant to docker-compose.yml
+- [ ] TODO-173: Create `packages/shared/src/vector/index.ts` barrel
+- [ ] TODO-174: Add vector store health checks
+- [ ] TODO-175: Add vector store connection pooling
+
+## 2.4 Data Lakehouse Integration (Todos 176–200)
+
+- [ ] TODO-176: Add `duckdb` dependency to packages/shared
+- [ ] TODO-177: Create `packages/shared/src/lakehouse/duckdb.ts` DuckDB wrapper
+- [ ] TODO-178: Create `packages/shared/src/lakehouse/types.ts` lakehouse types
+- [ ] TODO-179: Add `apache-arrow` dependency
+- [ ] TODO-180: Create `packages/shared/src/lakehouse/arrow.ts` Arrow integration
+- [ ] TODO-181: Create `packages/shared/src/lakehouse/schema.ts` telemetry schema
+- [ ] TODO-182: Add Iceberg table format support types
+- [ ] TODO-183: Create `packages/shared/src/lakehouse/catalog.ts` metadata catalog
+- [ ] TODO-184: Add Trino query interface stub
+- [ ] TODO-185: Create `packages/shared/src/lakehouse/query.ts` query builder
+- [ ] TODO-186: Add telemetry data ingestion pipeline
+- [ ] TODO-187: Add telemetry data aggregation queries
+- [ ] TODO-188: Create `packages/shared/src/lakehouse/__tests__/duckdb.test.ts`
+- [ ] TODO-189: Create `packages/shared/src/lakehouse/__tests__/schema.test.ts`
+- [ ] TODO-190: Add DuckDB to docker-compose.yml
+- [ ] TODO-191: Create `packages/shared/src/lakehouse/index.ts` barrel
+- [ ] TODO-192: Add telemetry export to Parquet format
+- [ ] TODO-193: Add telemetry export to CSV format
+- [ ] TODO-194: Add telemetry time-series partitioning
+- [ ] TODO-195: Add data retention policy configuration
+- [ ] TODO-196: Create `packages/shared/src/lakehouse/pipeline.ts` ETL pipeline
+- [ ] TODO-197: Add pipeline scheduling configuration
+- [ ] TODO-198: Add pipeline error handling and retry logic
+- [ ] TODO-199: Create `packages/shared/src/lakehouse/metrics.ts` data quality metrics
+- [ ] TODO-200: Add data lineage tracking
+
+## 2.5 Core Test Suite (Todos 201–215)
+
+- [ ] TODO-201: Migrate tests from `assert` to `vitest`
+- [ ] TODO-202: Add `vitest` dependency to packages/core
+- [ ] TODO-203: Create `packages/core/vitest.config.ts`
+- [ ] TODO-204: Rewrite `core.test.ts` as `ksn.test.ts` with vitest
+- [ ] TODO-205: Create `packages/core/src/metrics/__tests__/efficiency.test.ts`
+- [ ] TODO-206: Create `packages/core/src/metrics/__tests__/kardashev.test.ts`
+- [ ] TODO-207: Create `packages/core/src/metrics/__tests__/risk.test.ts`
+- [ ] TODO-208: Create `packages/core/src/metrics/__tests__/composite.test.ts`
+- [ ] TODO-209: Create `packages/core/src/yield.test.ts` yield distribution tests
+- [ ] TODO-210: Create `packages/core/src/agency.test.ts` agency stage tests
+- [ ] TODO-211: Add edge case tests (zero values, negative, overflow)
+- [ ] TODO-212: Add property-based tests with `fast-check`
+- [ ] TODO-213: Add snapshot tests for deterministic outputs
+- [ ] TODO-214: Add performance benchmarks with `vitest bench`
+- [ ] TODO-215: Achieve >90% code coverage in packages/core
+
+---
+
+**Phase 2 Total: 105 todos**
