@@ -1,0 +1,25 @@
+{
+  "name": "autonomous-kardashev-rwa-stack",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Autonomous Kardashev RWA Stack: energy, compute, AI agency, and DePIN civilization simulator.",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @aks/web --filter @aks/oracle-sim dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "contracts:compile": "pnpm --filter @aks/contracts compile"
+  },
+  "keywords": [
+    "rwa",
+    "depin",
+    "ai-agent",
+    "kardashev",
+    "oracle",
+    "compute",
+    "energy",
+    "ethereum"
+  ],
+  "license": "MIT"
+}
