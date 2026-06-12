@@ -1,3 +1,8 @@
+import { EnergySource } from './types/energy';
+import { ComputeArchitecture } from './types/compute';
+import { GeopoliticalRegion, ComplianceStatus } from './types/region';
+import { NetworkTopology } from './types/network';
+
 export type AssetClass =
   | "MICROGRID_GPU_CLUSTER"
   | "PLANETARY_ENERGY_GRID"
@@ -25,6 +30,11 @@ export interface InfrastructureAsset {
   maintenanceCostRate: number;
   riskScore: number;
   agencyStage: AgencyStage;
+  energySource?: EnergySource;
+  computeArchitecture?: ComputeArchitecture;
+  topology?: NetworkTopology;
+  region?: GeopoliticalRegion;
+  complianceStatus?: ComplianceStatus;
 }
 
 export interface KsnSnapshot {
