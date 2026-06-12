@@ -45,7 +45,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "sharp"
+      "sharp",
+      "duckdb",
+      "@parcel/watcher"
     ]
   }
-}
+  }
