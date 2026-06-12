@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "lib": ["ES2022"],
     "baseUrl": ".",
-    "types": ["react", "react-native"],
+    "types": ["react", "react-native", "node"],
     "paths": {
       "@aks/core": ["../packages/core/src/index.ts"]
     }
