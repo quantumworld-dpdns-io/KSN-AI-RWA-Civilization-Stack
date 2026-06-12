@@ -20,6 +20,9 @@ importers:
       turbo:
         specifier: ^2.5.4
         version: 2.9.18
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   apps/web:
     dependencies:
@@ -121,7 +124,7 @@ importers:
         version: 3.25.76
     devDependencies:
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
       vitest:
         specifier: ^2.1.0
