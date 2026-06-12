@@ -21,6 +21,11 @@ services:
       REDIS_PASSWORD: "\${REDIS_PASSWORD:-supersecret}"
     depends_on:
       - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   web:
     build:
@@ -32,6 +37,11 @@ services:
       VITE_ORACLE_URL: http://localhost:8787
     depends_on:
       - oracle-sim
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   redis:
     build:
@@ -42,6 +52,11 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "\${REDIS_PASSWORD:-supersecret}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   postgres:
     build:
@@ -55,6 +70,11 @@ services:
       POSTGRES_DB: "\${POSTGRES_DB:-telemetry}"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \${POSTGRES_USER:-aks} -d \${POSTGRES_DB:-telemetry}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   redis-data:
