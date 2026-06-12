@@ -15,7 +15,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
     "@nomicfoundation/hardhat-toolbox": "^7.0.0",
     "hardhat": "^3.9.0",
-    "solhint": "^4.6.0",
+    "solhint": "^6.2.1",
     "typescript": "^5.9.3"
   },
   "dependencies": {
