@@ -85,6 +85,14 @@ export class DuckDBClient {
     });
   }
 
+  async exportToParquet(path: string) {
+    await this.run(`COPY telemetry TO '${path}' (FORMAT PARQUET)`);
+  }
+
+  async exportToCSV(path: string) {
+    await this.run(`COPY telemetry TO '${path}' (FORMAT CSV, HEADER)`);
+  }
+
   private run(sql: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.conn.run(sql, (err) => (err ? reject(err) : resolve()));
