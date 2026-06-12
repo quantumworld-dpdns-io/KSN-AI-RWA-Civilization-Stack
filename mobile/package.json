@@ -1,0 +1,26 @@
+{
+  "name": "@aks/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "predev": "pnpm --filter @aks/core build",
+    "dev": "expo start",
+    "prebuild": "pnpm --filter @aks/core build",
+    "build": "expo export",
+    "pretypecheck": "pnpm --filter @aks/core build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aks/core": "workspace:*",
+    "expo": "^56.0.11",
+    "expo-status-bar": "^3.0.8",
+    "react": "^19.1.0",
+    "react-native": "^0.86.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "typescript": "^5.9.3"
+  }
+}

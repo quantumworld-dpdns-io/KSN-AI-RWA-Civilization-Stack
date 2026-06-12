@@ -2,4 +2,9 @@ auto_commit.sh
 .DS_Store
 /refs
 /packages/shared/src/vector/__tests__
+<<<<<<< HEAD
 mobile/.env
+=======
+>>>>>>> 8a82580cd535fe7ffcb1b48f7756ce8b80db6052
+/node_modules
+/node_modules

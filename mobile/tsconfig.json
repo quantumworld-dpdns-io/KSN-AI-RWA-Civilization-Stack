@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowJs": false,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022"],
+    "baseUrl": ".",
+    "types": ["react", "react-native"],
+    "paths": {
+      "@aks/core": ["../packages/core/src/index.ts"]
+    }
+  },
+  "include": ["App.tsx", "index.js", "src/**/*", "../packages/core/src/**/*.ts"]
+}

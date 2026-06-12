@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "KSN Mobile",
+    "slug": "ksn-mobile",
+    "scheme": "ksn-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "backgroundColor": "#080808"
+    },
+    "android": {
+      "package": "com.ksn.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "com.ksn.mobile"
+    }
+  }
+}
