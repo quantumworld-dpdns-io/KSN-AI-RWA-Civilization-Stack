@@ -13,6 +13,7 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "contracts:compile": "pnpm --filter @aks/contracts compile",
+    "audit": "pnpm audit",
     "format": "biome format --write .",
     "check": "biome check --write .",
     "typecheck": "pnpm -r typecheck",

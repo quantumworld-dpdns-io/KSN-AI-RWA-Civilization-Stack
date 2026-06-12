@@ -1,0 +1,10 @@
+title = "KSN-AI-RWA-Civilization-Stack Gitleaks Config"
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''\.gitleaks\.toml''',
+    '''\.env\.example''',
+    '''infra/\.env\.docker\.example''',
+    '''\.vscode/launch\.json'''
+]
