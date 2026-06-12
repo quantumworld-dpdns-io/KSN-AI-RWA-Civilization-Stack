@@ -13,7 +13,7 @@ export class LakehouseQueryBuilder {
       params.push(assetId);
     }
 
-    return this.client.query({} as any); // Simplified for now
+    return this.client.runQuery(sql, params);
   }
 
   async getTimeSeries(metricName: string, assetId: string, limit = 100) {
@@ -36,7 +36,6 @@ export class LakehouseQueryBuilder {
       WHERE metricName = 'ksn_score'
       GROUP BY assetId
     `;
-    // We would need a more flexible query method in DuckDBClient to run arbitrary SQL
-    return this.client.query({} as any); 
+    return this.client.runQuery(sql); 
   }
 }
