@@ -5,3 +5,4 @@ auto_commit.sh
 /node_modules
 mobile/.env
 /mobile/.expo
+/packages
