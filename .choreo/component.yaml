@@ -1,0 +1,22 @@
+# Choreo source config — must live at <docker-context>/.choreo/component.yaml
+# Docs: https://wso2.com/engineering-platform/developer-platform/docs/develop-components/manage-component-source-configurations/
+schemaVersion: 1.2
+
+endpoints:
+  - name: oracle-sim
+    displayName: Oracle Sim API
+    service:
+      basePath: /
+      port: 8787
+    type: REST
+    networkVisibilities:
+      - Public
+
+configurations:
+  env:
+    - name: REDIS_PASSWORD
+      valueFrom:
+        configForm:
+          displayName: Redis Password
+          required: true
+          type: secret
