@@ -4,6 +4,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 RUN corepack enable pnpm
+ENV CI=true
 COPY . .
 RUN pnpm install --frozen-lockfile=false
 RUN pnpm --filter @aks/oracle-sim... build
