@@ -34,10 +34,13 @@ COPY --from=builder /app/packages/oracle-sim/dist ./packages/oracle-sim/dist
 # ---- supervisord configuration ----
 COPY infra/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# ---- Create non-root user for security compliance (CKV_DOCKER_3) ----
-# node:20-alpine already has 'node' user (UID 1000, GID 1000)
-RUN mkdir -p /data /run/supervisor \
-    && chown -R node:node /app /data /run/supervisor \
+# ---- Create non-root user for Choreo security compliance ----
+# CKV_DOCKER_3: non-root user required
+# CKV_CHOREO_1: UID must be between 10000 and 20000
+RUN addgroup -g 10014 -S app \
+    && adduser -S -u 10014 -G app app \
+    && mkdir -p /data /run/supervisor \
+    && chown -R app:app /app /data /run/supervisor \
     && chmod -R 755 /app /data /run/supervisor
 
 # oracle-sim HTTP port (Choreo will route external traffic here)
@@ -48,7 +51,7 @@ EXPOSE 6379
 ENV NODE_ENV=production
 
 # Switch to non-root user before running supervisord
-USER node
+USER 10014
 
 # supervisord runs as PID 1 and manages both child processes
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
