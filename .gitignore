@@ -2,3 +2,6 @@ auto_commit.sh
 .DS_Store
 /refs
 /packages/shared/src/vector/__tests__
+/node_modules
+mobile/.env
+/mobile/.expo
