@@ -6,3 +6,7 @@ auto_commit.sh
 mobile/.env
 /mobile/.expo
 /packages
+/apps/web/.next
+/apps/web/.next
+apps/web/.next/cache/.tsbuildinfo
+apps/web/.next/diagnostics/build-diagnostics.json
