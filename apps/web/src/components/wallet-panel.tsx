@@ -166,7 +166,7 @@ export function WalletPanel() {
               <p className="muted-line">Privileged actions enabled by your roles.</p>
               {account.roles.operator && <button className="secondary" onClick={() => run("Report gross yield", () => w.writeContract({ address: RWA, abi: rwaWriteAbi, functionName: "reportGrossYield", args: [parseEther("1")] }))}>Report 1 ETH gross yield</button>}
               {account.roles.operator && <button className="secondary" onClick={() => run("Mint 100 KSNTPE", () => w.writeContract({ address: RWA, abi: rwaWriteAbi, functionName: "mint", args: [w.address as Address, parseUnits("100", 18)] }))}>Mint 100 KSNTPE to self</button>}
-              {account.roles.proposer && <button className="secondary" onClick={() => run("Create proposal", () => w.writeContract({ address: TREASURY, abi: treasuryWriteAbi, functionName: "propose", args: [TREASURY, 0n, "0x", "policy:demo"] }))}>Create zero-value proposal</button>}
+              {account.roles.proposer && <button className="secondary" onClick={() => run("Create proposal", () => w.writeContract({ address: TREASURY, abi: treasuryWriteAbi, functionName: "propose", args: [TREASURY, BigInt(0), "0x", "policy:demo"] }))}>Create zero-value proposal</button>}
               {account.roles.guardian && <button className="secondary danger" onClick={() => run("Pause RWA", () => w.writeContract({ address: RWA, abi: rwaWriteAbi, functionName: "pause", args: [] }))}>Pause RWA token</button>}
             </article>
           )}
