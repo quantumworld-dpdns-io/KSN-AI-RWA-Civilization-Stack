@@ -7,6 +7,9 @@ This repository is a concept-to-prototype scaffold for merging two narratives:
 1. **Kardashev / KSN RWA path** — real-world assets evolve from buildings and debt into energy, compute, microgrids, orbital solar, and stellar-scale infrastructure.
 2. **12 Scenes of AI path** — AI evolves from a tool that optimizes RWA portfolios into an autonomous economic actor that issues, owns, governs, and eventually abstracts infrastructure into planetary dividends.
 
+## demo video
+<https://youtu.be/Y_3UZ5HFIyo>
+
 The core metric used in this prototype is:
 
 ```math
