@@ -52,8 +52,12 @@ export function Dashboard({ initialTelemetry, initialHealth }: { initialTelemetr
         <header className="topbar">
           <div><p className="eyebrow">Autonomous infrastructure intelligence</p><h1>{titles[view]}</h1></div>
           <button className="refresh" onClick={refresh} disabled={refreshing}><span className={refreshing ? "spin" : ""}>↻</span>{refreshing ? "Syncing" : "Sync oracle"}</button>
-        </header>
-
+            </header>
+            <p>This repository is a concept-to-prototype scaffold for merging two narratives:</p>
+            <ul>
+              <li><strong>Kardashev / KSN RWA path</strong> — real-world assets evolve from buildings and debt into energy, compute, microgrids, orbital solar, and stellar-scale infrastructure.</li>
+              <li><strong>12 Scenes of AI path</strong> — AI evolves from a tool that optimizes RWA portfolios into an autonomous economic actor that issues, owns, governs, and eventually abstracts infrastructure into planetary dividends.</li>
+            </ul>
         {selected ? (
           <>
             {view === "overview" && <Overview telemetry={telemetry} selected={selected} select={setSelectedId} />}
