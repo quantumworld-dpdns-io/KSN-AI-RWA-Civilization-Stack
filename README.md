@@ -28,7 +28,7 @@ Where:
 ```txt
 .
 ├── apps/
-│   └── web/                    # React/Vite dashboard and civilization simulator
+│   └── web/                    # Next.js dashboard and civilization simulator
 ├── packages/
 │   ├── core/                   # Shared TypeScript simulation engine
 │   ├── oracle-sim/             # Mock oracle API for energy, hashrate, and asset telemetry
@@ -119,6 +119,39 @@ A mock oracle service returning simulated telemetry:
 - Maintenance cost.
 - Carbon intensity.
 - Geopolitical/legal risk signal.
+
+The service also computes the KSN/Kardashev snapshot, yield allocation, AI autonomy risk, and oracle confidence for every reading. Telemetry payloads are hashed and HMAC-signed.
+
+### Combined Oracle + Redis runtime
+
+[`infra/oracle-redis.Dockerfile`](infra/oracle-redis.Dockerfile) packages the Oracle API and a loopback-only Redis instance into one non-root container. Redis provides current-snapshot caching and a bounded telemetry audit history; SQL persistence is intentionally external to this image.
+
+Required production environment variables:
+
+```bash
+REDIS_PASSWORD=<strong-random-password>
+ORACLE_SIGNING_SECRET=<strong-random-signing-secret>
+```
+
+Optional tuning:
+
+```bash
+TELEMETRY_CACHE_TTL_SECONDS=300
+TELEMETRY_HISTORY_LIMIT=500
+```
+
+The runtime exposes only the Oracle HTTP port (`8787`). Redis binds to `127.0.0.1` inside the container. Readiness at `GET /ready` requires both processes to be operational.
+
+| README capability | Runtime evidence |
+|---|---|
+| Energy, compute, utilization | `GET /telemetry` and `GET /telemetry/:assetId` |
+| Maintenance, carbon, geopolitical/legal risk | `signals` in each telemetry payload |
+| KSN/Kardashev, yield, AI autonomy | Calculated fields in telemetry and `POST /simulate` |
+| AI agency ladder | `agency` stage, description, next stage, and simulated operating policy in each result |
+| AI policy and kill-switch constraints | Non-executing simulation mode, approval boundary, price ceiling, and kill-switch declaration in `agency.safetyControls` |
+| Oracle integrity | SHA-256 payload hash and HMAC-SHA256 signature |
+| Redis cache and audit trail | Current snapshots and `GET /telemetry/:assetId/history` |
+| Runtime discovery | `GET /capabilities`, `/health`, `/ready`, `/health/redis` |
 
 ### `packages/contracts`
 

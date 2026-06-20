@@ -6,7 +6,7 @@ WORKDIR /app
 RUN corepack enable pnpm
 ENV CI=true
 COPY . .
-RUN pnpm install --frozen-lockfile=false
+RUN pnpm install --filter @aks/oracle-sim... --frozen-lockfile=false
 RUN pnpm --filter @aks/oracle-sim... build
 RUN node infra/scripts/fix-esm-extensions.mjs \
     packages/core/dist \
@@ -50,8 +50,15 @@ RUN addgroup -g 10014 -S app \
 
 # oracle-sim HTTP port (Choreo will route external traffic here)
 EXPOSE 8787
-# Redis is internal only; not exposed externally
-EXPOSE 6379
+
+# Redis persistence. Mount durable storage at /data in production.
+VOLUME ["/data"]
+
+# Readiness requires both the HTTP service and its Redis persistence layer.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://127.0.0.1:8787/ready || exit 1
+
+STOPSIGNAL SIGTERM
 
 # Switch to non-root user before running supervisord
 USER 10014

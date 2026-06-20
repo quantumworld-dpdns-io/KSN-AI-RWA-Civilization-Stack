@@ -1,14 +1,30 @@
-import { computeKsnScore, estimateKardashevType, simulateYieldDistribution, SAMPLE_ASSETS } from "./index";
+import { describe, expect, it } from "vitest";
+import { computeKsnScore, estimateKardashevType, simulateYieldDistribution } from "./index";
+import { SAMPLE_ASSETS } from "./fixtures.ts";
 
-function assert(condition: boolean, message: string): void {
-  if (!condition) throw new Error(message);
-}
+describe("KSN core model", () => {
+  it("computes energy per compute unit", () => {
+    expect(computeKsnScore(100, 10)).toBe(10);
+  });
 
-assert(computeKsnScore(100, 10) === 10, "KSN score should be P/H");
-assert(Math.abs(estimateKardashevType(1e16) - 1) < 1e-9, "1e16 W should approximate Type 1");
+  it("approximates a Type 1 civilization at 1e16 watts", () => {
+    expect(estimateKardashevType(1e16)).toBeCloseTo(1, 9);
+  });
 
-const y = simulateYieldDistribution(SAMPLE_ASSETS[0]);
-assert(y.grossRevenue > 0, "gross revenue should be positive");
-assert(y.humanInvestorYield >= 0, "human yield should not be negative");
+  it("distributes positive revenue without a negative human yield", () => {
+    const distribution = simulateYieldDistribution(SAMPLE_ASSETS[0]);
+    expect(distribution.grossRevenue).toBeGreaterThan(0);
+    expect(distribution.humanInvestorYield).toBeGreaterThanOrEqual(0);
+  });
 
-console.log("core tests passed");
+  it("fixtures include the complete oracle risk and sustainability metadata", () => {
+    for (const asset of SAMPLE_ASSETS) {
+      expect(asset.energySource).toBeDefined();
+      expect(asset.region).toBeDefined();
+      expect(asset.complianceStatus).toBeDefined();
+      expect(asset.carbonIntensityKgCo2ePerKwh).toBeGreaterThanOrEqual(0);
+      expect(asset.geopoliticalRiskScore).toBeGreaterThanOrEqual(0);
+      expect(asset.legalRiskScore).toBeGreaterThanOrEqual(0);
+    }
+  });
+});
