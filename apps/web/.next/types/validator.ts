@@ -56,6 +56,33 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/api/chain/account/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/chain/account">> = Specific
+  const handler = {} as typeof import("../../src/app/api/chain/account/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/chain/state/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/chain/state">> = Specific
+  const handler = {} as typeof import("../../src/app/api/chain/state/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/oracle/capabilities/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/oracle/capabilities">> = Specific
+  const handler = {} as typeof import("../../src/app/api/oracle/capabilities/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/api/oracle/health/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/oracle/health">> = Specific
@@ -69,6 +96,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/oracle/simulate">> = Specific
   const handler = {} as typeof import("../../src/app/api/oracle/simulate/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/oracle/telemetry/[assetId]/history/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/oracle/telemetry/[assetId]/history">> = Specific
+  const handler = {} as typeof import("../../src/app/api/oracle/telemetry/[assetId]/history/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/oracle/telemetry/[assetId]/refresh/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/oracle/telemetry/[assetId]/refresh">> = Specific
+  const handler = {} as typeof import("../../src/app/api/oracle/telemetry/[assetId]/refresh/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
