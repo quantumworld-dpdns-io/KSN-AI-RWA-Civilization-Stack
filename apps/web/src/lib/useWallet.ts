@@ -86,12 +86,13 @@ export function useWallet() {
     return client.sendTransaction({ account: state.address, chain: sepolia, to, value: parseEther(amountEth) });
   }, [state.address]);
 
-  const writeContract = useCallback(async (args: Parameters<ReturnType<typeof walletClientFor>["writeContract"]>[0]): Promise<Hex> => {
+  const writeContract = useCallback(async (args: { address: Address; abi: readonly unknown[]; functionName: string; args?: readonly unknown[] }): Promise<Hex> => {
     const provider = getInjectedProvider();
     if (!provider || !state.address) throw new Error("Wallet not connected.");
     await ensureSepolia(provider);
     const client = walletClientFor(provider, state.address);
-    return client.writeContract({ ...args, account: state.address, chain: sepolia } as typeof args);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return client.writeContract({ ...args, account: state.address, chain: sepolia } as any);
   }, [state.address]);
 
   return { ...state, hasWallet, onSepolia, connect, disconnect, switchNetwork, signMessage, fundTreasury, writeContract, toMessage };
