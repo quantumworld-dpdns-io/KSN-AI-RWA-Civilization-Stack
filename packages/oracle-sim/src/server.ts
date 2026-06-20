@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import { z } from "zod";
 import { getAssetTelemetry, listTelemetry } from "./telemetry";
-import { getRedisClient } from "./redis.js";
+import { getRedisClient } from "./redis";
 
 const app = Fastify({ logger: true });
 

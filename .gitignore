@@ -5,7 +5,14 @@ auto_commit.sh
 /node_modules
 mobile/.env
 /mobile/.expo
-/packages
+packages/*/dist/
+packages/*/node_modules/
+packages/*/.turbo
+packages/*/tsconfig.tsbuildinfo
+packages/**/src/**/*.js
+packages/**/src/**/*.d.ts
+packages/**/src/**/*.js.map
+packages/**/src/**/*.d.ts.map
 /apps/web/.next
 /apps/web/.next
 apps/web/.next/cache/.tsbuildinfo
