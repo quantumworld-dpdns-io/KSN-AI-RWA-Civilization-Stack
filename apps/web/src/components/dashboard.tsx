@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AssetTelemetry, OracleCapabilities, ServiceHealth, SimulationResult } from "@/lib/types";
 import sepoliaDeployment from "@/generated/contracts.sepolia.json";
+import { WalletPanel } from "@/components/wallet-panel";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 2 });
 const decimal = new Intl.NumberFormat("en", { maximumFractionDigits: 3 });
@@ -85,7 +86,7 @@ export function Dashboard({ initialTelemetry, initialHealth, initialCapabilities
           <div className="status-row"><span className={`status-dot ${health.oracle}`} />Oracle API <b>{health.oracle}</b></div>
           <div className="status-row"><span className={`status-dot ${health.redis}`} />Redis cache <b>{health.redis}</b></div>
           <div className="status-row"><span className={`status-dot ${health.signing === "configured" ? "online" : "unknown"}`} />HMAC signing <b>{health.signing}</b></div>
-          <small>Last check<br />{new Date(health.checkedAt).toLocaleString()}</small>
+          <small suppressHydrationWarning>Last check<br />{new Date(health.checkedAt).toLocaleString()}</small>
         </div>
       </aside>
 
@@ -137,7 +138,7 @@ function Overview({ telemetry, selected, select }: { telemetry: AssetTelemetry[]
         </div>
         <Progress label="Civilization energy scale" value={Math.min(100, selected.ksn.kardashevType / 2 * 100)} />
         <p className="stage-label">{selected.ksn.stageLabel}</p>
-        <div className="signature"><span>Telemetry proof</span><code>{selected.telemetrySignature}</code><time>{new Date(selected.timestamp).toLocaleTimeString()}</time></div>
+        <div className="signature"><span>Telemetry proof</span><code>{selected.telemetrySignature}</code><time suppressHydrationWarning>{new Date(selected.timestamp).toLocaleTimeString()}</time></div>
       </article>
 
       <article className="panel allocation">
@@ -227,6 +228,7 @@ function SettlementContracts() {
       <Metric label="Execution boundary" value="Guardian" detail="Human approval + delayed proposals" icon="◉" />
     </section>
     <section className="panel"><PanelTitle kicker="Ethereum settlement layer" title="Sepolia contract registry" aside={<span className={`pill ${published ? "live" : ""}`}>{published ? "On chain" : "Not deployed"}</span>} /><div className="contract-list">{Object.entries(deployment.contracts).map(([name, address]) => <article className="contract-card" key={name}><div><span className={`status-dot ${address ? "online" : "unknown"}`} /><strong>{name}</strong></div><p>{descriptions[name]}</p>{address && deployment.explorer ? <a href={`${deployment.explorer}/address/${address}`} target="_blank" rel="noreferrer"><code>{address}</code><span>View on Etherscan ↗</span></a> : <code>Pending Sepolia deployment</code>}{deployment.transactions[name] && deployment.explorer && <a className="tx-link" href={`${deployment.explorer}/tx/${deployment.transactions[name]}`} target="_blank" rel="noreferrer">Deployment transaction ↗</a>}</article>)}</div>{deployment.deployer && <div className="deployment-meta"><span>Deployer <code>{deployment.deployer}</code></span><span>Published {deployment.deployedAt ? new Date(deployment.deployedAt).toLocaleString() : "—"}</span></div>}</section>
+    <WalletPanel />
     {published && <LiveChainState />}
   </>;
 }
