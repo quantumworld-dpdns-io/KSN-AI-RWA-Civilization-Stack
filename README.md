@@ -133,6 +133,8 @@ REDIS_PASSWORD=<strong-random-password>
 ORACLE_SIGNING_SECRET=<strong-random-signing-secret>
 ```
 
+Both production secrets must contain at least 16 characters; use substantially longer randomly generated values for real deployments.
+
 Optional tuning:
 
 ```bash
@@ -160,6 +162,8 @@ Solidity skeletons for:
 - `ComputeEnergyRWA.sol` — tokenized compute-energy asset.
 - `KSNOracleAdapter.sol` — oracle adapter interface.
 - `AIAgentTreasury.sol` — autonomous treasury policy shell.
+
+The prototype suite is configured for Ethereum Sepolia publication. See [`packages/contracts/README.md`](packages/contracts/README.md) for the guarded deployment flow. Once deployed, addresses and Etherscan links are displayed by the dashboard’s **Sepolia contracts** view.
 
 ---
 

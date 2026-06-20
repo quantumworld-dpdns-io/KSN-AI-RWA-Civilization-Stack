@@ -30,6 +30,6 @@ This plan aligns `infra/oracle-redis.Dockerfile` with the non-SQL Oracle and sim
 
 ## Runtime contract
 
-Production requires `REDIS_PASSWORD` and `ORACLE_SIGNING_SECRET`. `/ready` returns success only when Redis is reachable. Telemetry remains available in degraded mode during a transient Redis outage, but history correctly returns HTTP 503 because persistence cannot be guaranteed.
+Production requires `REDIS_PASSWORD` and `ORACLE_SIGNING_SECRET`, each containing at least 16 characters. `/ready` returns success only when Redis is reachable. Telemetry remains available in degraded mode during a transient Redis outage, but history correctly returns HTTP 503 because persistence cannot be guaranteed.
 
 Redis current-snapshot TTL and history length are controlled by `TELEMETRY_CACHE_TTL_SECONDS` and `TELEMETRY_HISTORY_LIMIT`. A durable volume must be mounted at `/data` when audit history must survive container replacement.

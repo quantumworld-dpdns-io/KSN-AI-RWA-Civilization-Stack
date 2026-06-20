@@ -127,11 +127,16 @@ export function buildTelemetry(asset: InfrastructureAsset, timestamp = new Date(
 }
 
 export function verifyTelemetrySignature(telemetry: AssetTelemetry): boolean {
-  const { payloadHash, signatureAlgorithm: _algorithm, telemetrySignature, ...unsigned } = telemetry;
+  const { payloadHash, signatureAlgorithm, telemetrySignature, ...unsigned } = telemetry;
+  if (
+    signatureAlgorithm !== SIGNATURE_ALGORITHM
+    || !/^[a-f0-9]{64}$/.test(payloadHash)
+    || !/^[a-f0-9]{64}$/.test(telemetrySignature)
+  ) return false;
   const canonical = JSON.stringify(unsigned);
   const expectedHash = createHash("sha256").update(canonical).digest("hex");
   const expectedSignature = createHmac("sha256", signingSecret()).update(canonical).digest("hex");
-  if (payloadHash !== expectedHash || telemetrySignature.length !== expectedSignature.length) return false;
+  if (payloadHash !== expectedHash) return false;
   return timingSafeEqual(Buffer.from(telemetrySignature, "hex"), Buffer.from(expectedSignature, "hex"));
 }
 

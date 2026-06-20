@@ -178,12 +178,33 @@ export async function start(): Promise<void> {
   const app = buildApp();
   const port = Number(process.env.ORACLE_PORT ?? 8787);
   await app.listen({ port, host: "0.0.0.0" });
+  installShutdownHandlers(app);
 }
 
-function validateRuntimeConfiguration(): void {
+export function validateRuntimeConfiguration(): void {
   if (process.env.NODE_ENV !== "production") return;
   const missing = ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"].filter((name) => !process.env[name]);
   if (missing.length) throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
+  const weak = ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"].filter((name) => process.env[name]!.length < 16);
+  if (weak.length) throw new Error(`Production secrets must contain at least 16 characters: ${weak.join(", ")}`);
+}
+
+function installShutdownHandlers(app: FastifyInstance): void {
+  let closing = false;
+  const shutdown = async (signal: NodeJS.Signals) => {
+    if (closing) return;
+    closing = true;
+    app.log.info({ signal }, "Shutting down Oracle service");
+    try {
+      await app.close();
+      process.exitCode = 0;
+    } catch (error) {
+      app.log.error(error, "Oracle shutdown failed");
+      process.exitCode = 1;
+    }
+  };
+  process.once("SIGTERM", shutdown);
+  process.once("SIGINT", shutdown);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -1,0 +1,19 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": null,
+  "blockNumber": null,
+  "deployedAt": null,
+  "assetId": null,
+  "contracts": {
+    "KSNOracleAdapter": null,
+    "AIAgentTreasury": null,
+    "ComputeEnergyRWA": null
+  },
+  "transactions": {
+    "KSNOracleAdapter": null,
+    "AIAgentTreasury": null,
+    "ComputeEnergyRWA": null
+  },
+  "explorer": "https://sepolia.etherscan.io"
+}

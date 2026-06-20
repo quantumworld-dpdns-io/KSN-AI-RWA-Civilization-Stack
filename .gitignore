@@ -3,6 +3,7 @@ auto_commit.sh
 /refs
 /packages/shared/src/vector/__tests__
 /node_modules
+/.pnpm-store
 mobile/.env
 /mobile/.expo
 packages/*/dist/
@@ -17,3 +18,7 @@ packages/**/src/**/*.d.ts.map
 /apps/web/.next
 apps/web/.next/cache/.tsbuildinfo
 apps/web/.next/diagnostics/build-diagnostics.json
+apps/web/tsconfig.tsbuildinfo
+packages/contracts/artifacts/
+packages/contracts/cache/
+packages/contracts/deployments/default.json

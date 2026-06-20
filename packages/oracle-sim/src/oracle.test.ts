@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildApp } from "./server";
+import { buildApp, validateRuntimeConfiguration } from "./server";
 import type { TelemetryStore } from "./store";
 import { getAssetTelemetry, verifyTelemetrySignature, type AssetTelemetry } from "./telemetry";
 
@@ -35,6 +35,13 @@ describe("oracle telemetry", () => {
     const tampered = structuredClone(telemetry!);
     tampered.asset.powerWatts += 1;
     expect(verifyTelemetrySignature(tampered)).toBe(false);
+    const wrongAlgorithm = structuredClone(telemetry!);
+    wrongAlgorithm.signatureAlgorithm = "sha256" as AssetTelemetry["signatureAlgorithm"];
+    expect(verifyTelemetrySignature(wrongAlgorithm)).toBe(false);
+    const malformedSignature = structuredClone(telemetry!);
+    malformedSignature.telemetrySignature = "z".repeat(64);
+    expect(() => verifyTelemetrySignature(malformedSignature)).not.toThrow();
+    expect(verifyTelemetrySignature(malformedSignature)).toBe(false);
   });
 
   it("serves capabilities, cached telemetry, refreshes, and audit history", async () => {
@@ -83,4 +90,33 @@ describe("oracle telemetry", () => {
     expect(missing.statusCode).toBe(404);
     await app.close();
   });
+
+  it("rejects missing and weak production secrets", () => {
+    const previous = {
+      NODE_ENV: process.env.NODE_ENV,
+      REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+      ORACLE_SIGNING_SECRET: process.env.ORACLE_SIGNING_SECRET
+    };
+    try {
+      process.env.NODE_ENV = "production";
+      delete process.env.REDIS_PASSWORD;
+      delete process.env.ORACLE_SIGNING_SECRET;
+      expect(() => validateRuntimeConfiguration()).toThrow(/Missing required/);
+      process.env.REDIS_PASSWORD = "too-short";
+      process.env.ORACLE_SIGNING_SECRET = "also-short";
+      expect(() => validateRuntimeConfiguration()).toThrow(/at least 16 characters/);
+      process.env.REDIS_PASSWORD = "redis-password-32-characters-long";
+      process.env.ORACLE_SIGNING_SECRET = "oracle-signing-secret-32-characters";
+      expect(() => validateRuntimeConfiguration()).not.toThrow();
+    } finally {
+      restoreEnvironment("NODE_ENV", previous.NODE_ENV);
+      restoreEnvironment("REDIS_PASSWORD", previous.REDIS_PASSWORD);
+      restoreEnvironment("ORACLE_SIGNING_SECRET", previous.ORACLE_SIGNING_SECRET);
+    }
+  });
 });
+
+function restoreEnvironment(name: string, value: string | undefined): void {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
+}
