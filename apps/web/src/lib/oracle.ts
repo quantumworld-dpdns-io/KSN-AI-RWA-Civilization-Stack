@@ -1,4 +1,5 @@
 import type { AssetTelemetry, OracleCapabilities, ServiceHealth, SimulationResult, TelemetryHistory } from "./types";
+import { normalizeTelemetry, normalizeTelemetryList } from "./normalize";
 
 const DEFAULT_ORACLE_URL = "http://127.0.0.1:8787";
 
@@ -19,7 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function getTelemetry(): Promise<AssetTelemetry[]> {
   const data = await request<{ assets: AssetTelemetry[] }>("/telemetry");
-  return data.assets;
+  return normalizeTelemetryList(data.assets);
 }
 
 export async function getHealth(): Promise<ServiceHealth> {
@@ -44,12 +45,13 @@ export function getCapabilities(): Promise<OracleCapabilities> {
   return request<OracleCapabilities>("/capabilities");
 }
 
-export function getTelemetryHistory(assetId: string, limit = 50): Promise<TelemetryHistory> {
-  return request<TelemetryHistory>(`/telemetry/${encodeURIComponent(assetId)}/history?limit=${limit}`);
+export async function getTelemetryHistory(assetId: string, limit = 50): Promise<TelemetryHistory> {
+  const history = await request<TelemetryHistory>(`/telemetry/${encodeURIComponent(assetId)}/history?limit=${limit}`);
+  return { ...history, items: normalizeTelemetryList(history.items) };
 }
 
-export function refreshTelemetry(assetId: string): Promise<AssetTelemetry> {
-  return request<AssetTelemetry>(`/telemetry/${encodeURIComponent(assetId)}/refresh`, { method: "POST" });
+export async function refreshTelemetry(assetId: string): Promise<AssetTelemetry> {
+  return normalizeTelemetry(await request<AssetTelemetry>(`/telemetry/${encodeURIComponent(assetId)}/refresh`, { method: "POST" }));
 }
 
 export function simulate(input: { powerWatts: number; hashrate: number; utilization: number }) {

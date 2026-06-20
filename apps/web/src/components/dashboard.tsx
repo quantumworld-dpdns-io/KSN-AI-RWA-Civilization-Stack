@@ -227,7 +227,58 @@ function SettlementContracts() {
       <Metric label="Execution boundary" value="Guardian" detail="Human approval + delayed proposals" icon="◉" />
     </section>
     <section className="panel"><PanelTitle kicker="Ethereum settlement layer" title="Sepolia contract registry" aside={<span className={`pill ${published ? "live" : ""}`}>{published ? "On chain" : "Not deployed"}</span>} /><div className="contract-list">{Object.entries(deployment.contracts).map(([name, address]) => <article className="contract-card" key={name}><div><span className={`status-dot ${address ? "online" : "unknown"}`} /><strong>{name}</strong></div><p>{descriptions[name]}</p>{address && deployment.explorer ? <a href={`${deployment.explorer}/address/${address}`} target="_blank" rel="noreferrer"><code>{address}</code><span>View on Etherscan ↗</span></a> : <code>Pending Sepolia deployment</code>}{deployment.transactions[name] && deployment.explorer && <a className="tx-link" href={`${deployment.explorer}/tx/${deployment.transactions[name]}`} target="_blank" rel="noreferrer">Deployment transaction ↗</a>}</article>)}</div>{deployment.deployer && <div className="deployment-meta"><span>Deployer <code>{deployment.deployer}</code></span><span>Published {deployment.deployedAt ? new Date(deployment.deployedAt).toLocaleString() : "—"}</span></div>}</section>
+    {published && <LiveChainState />}
   </>;
+}
+
+interface ChainState {
+  ok: boolean; chainId: number; blockNumber: string; fetchedAt: string;
+  rwa: { address: string; name: string; symbol: string; totalSupply: string; assetId: string; aiTreasuryBps: number; humanInvestorBps: number };
+  treasury: { address: string; ethBalance: string; maxProposalValueEth: string; proposalDelayHours: number; paused: boolean };
+  oracle: { address: string; ksnScore: string };
+}
+
+function LiveChainState() {
+  const [state, setState] = useState<ChainState | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function load() {
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/chain/state", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Chain read failed");
+      setState(data);
+    } catch (e) { setError(e instanceof Error ? e.message : "Chain read failed"); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { void load(); }, []);
+
+  return (
+    <section className="panel">
+      <PanelTitle kicker="Live on-chain reads (viem)" title="Sepolia contract state"
+        aside={<button className="secondary" onClick={load} disabled={loading}>{loading ? "Reading…" : "Re-read chain"}</button>} />
+      {error && <p className="error">{error}</p>}
+      {!state && !error && <p className="muted-line">Reading contract state from Sepolia…</p>}
+      {state && <>
+        <div className="signal-grid">
+          <Value label="RWA token" value={`${state.rwa.name} (${state.rwa.symbol})`} />
+          <Value label="Total supply" value={`${decimal.format(Number(state.rwa.totalSupply))} ${state.rwa.symbol}`} />
+          <Value label="AI treasury share" value={`${(state.rwa.aiTreasuryBps / 100).toFixed(2)}%`} />
+          <Value label="Human investor share" value={`${(state.rwa.humanInvestorBps / 100).toFixed(2)}%`} />
+          <Value label="Treasury ETH balance" value={`${decimal.format(Number(state.treasury.ethBalance))} ETH`} />
+          <Value label="Max proposal value" value={`${decimal.format(Number(state.treasury.maxProposalValueEth))} ETH`} />
+          <Value label="Proposal delay" value={`${decimal.format(state.treasury.proposalDelayHours)} h`} />
+          <Value label="Treasury paused" value={yesNo(state.treasury.paused)} />
+          <Value label="Oracle KSN score" value={state.oracle.ksnScore} mono />
+          <Value label="Asset ID" value={`${state.rwa.assetId.slice(0, 10)}…${state.rwa.assetId.slice(-6)}`} mono />
+        </div>
+        <div className="deployment-meta"><span>Block <code>{state.blockNumber}</code></span><span>Read {new Date(state.fetchedAt).toLocaleTimeString()}</span></div>
+      </>}
+    </section>
+  );
 }
 
 function AllocationBars({ telemetry }: { telemetry: AssetTelemetry }) { const y = telemetry.yieldDistribution; const rows: [string, number, string][] = [["Human investors", y.humanInvestorYield, "cyan"], ["AI treasury", y.aiTreasury, "violet"], ["Maintenance", y.maintenanceReserve, "blue"], ["Insurance", y.insurancePool, "green"], ["Expansion", y.retainedForExpansion, "amber"], ["Planetary dividend", y.planetaryDividend, "pink"]]; return <div className="bar-list">{rows.map(([label, value, color]) => <div className="bar-row" key={label}><div><span>{label}</span><b>{usd.format(value)}</b></div><div className="bar-track"><i className={color} style={{ width: `${y.grossRevenue ? value / y.grossRevenue * 100 : 0}%` }} /></div></div>)}</div>; }
