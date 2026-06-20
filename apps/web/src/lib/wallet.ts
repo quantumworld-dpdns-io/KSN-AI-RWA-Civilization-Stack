@@ -5,28 +5,64 @@ import { sepolia } from "viem/chains";
 
 export const SEPOLIA_HEX = "0xaa36a7"; // 11155111
 
-type Eip1193 = {
+export type Eip1193 = {
   request: (args: { method: string; params?: unknown[] | object }) => Promise<unknown>;
   on?: (event: string, handler: (...args: unknown[]) => void) => void;
   removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
   providers?: Eip1193[];
+  isMetaMask?: boolean;
 };
+
+/** EIP-6963 announced provider. */
+export interface ProviderDetail {
+  info: { uuid: string; name: string; icon: string; rdns: string };
+  provider: Eip1193;
+}
 
 declare global {
   interface Window { ethereum?: Eip1193 }
 }
 
 /**
- * Pick a usable injected EIP-1193 provider. When several wallet extensions are
- * present (e.g. MetaMask + Phantom) `window.ethereum.providers` holds them all;
- * prefer MetaMask, otherwise the first that can sign EVM transactions.
+ * EIP-6963 multi-injected provider discovery. Avoids depending on the single
+ * `window.ethereum` global, which multiple wallet extensions (MetaMask, Phantom…)
+ * fight over and clobber. Each wallet announces itself with name + icon, so we
+ * can present a clean picker and select the exact provider the user wants.
  */
-export function getInjectedProvider(): Eip1193 | null {
-  if (typeof window === "undefined" || !window.ethereum) return null;
-  const eth = window.ethereum;
-  const list = Array.isArray(eth.providers) && eth.providers.length ? eth.providers : [eth];
-  const metamask = list.find((p) => (p as unknown as { isMetaMask?: boolean }).isMetaMask);
-  return metamask ?? list[0] ?? null;
+export function subscribeProviders(onChange: (list: ProviderDetail[]) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const map = new Map<string, ProviderDetail>();
+
+  const emit = () => onChange(Array.from(map.values()));
+
+  const handler = (event: Event) => {
+    const detail = (event as CustomEvent<ProviderDetail>).detail;
+    if (detail?.info?.uuid && detail.provider) {
+      map.set(detail.info.uuid, detail);
+      emit();
+    }
+  };
+
+  window.addEventListener("eip6963:announceProvider", handler as EventListener);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+  // Legacy fallback: surface window.ethereum if no EIP-6963 wallet responds.
+  setTimeout(() => {
+    if (map.size === 0 && window.ethereum) {
+      map.set("legacy", {
+        info: {
+          uuid: "legacy",
+          name: window.ethereum.isMetaMask ? "MetaMask" : "Injected Wallet",
+          icon: "",
+          rdns: "legacy.injected"
+        },
+        provider: window.ethereum
+      });
+      emit();
+    }
+  }, 350);
+
+  return () => window.removeEventListener("eip6963:announceProvider", handler as EventListener);
 }
 
 export function walletClientFor(provider: Eip1193, account: Address): WalletClient {

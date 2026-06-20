@@ -44,3 +44,12 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 .tx-ok { color: var(--cyan); font-size: 10px; }
 .signature-out { display: block; color: #56606e; font-size: 9px; word-break: break-all; }
 @media (max-width: 720px) { .wallet-actions { grid-template-columns: 1fr; } }
+
+/* Wallet picker (EIP-6963) */
+.wallet-picker { margin: 4px 0 10px; }
+.wallet-picker-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.wallet-choice { display: flex; align-items: center; gap: 8px; border: 1px solid #34404a; background: #111820; color: #d9dee4; border-radius: 8px; padding: 9px 13px; cursor: pointer; font-size: 12px; font-weight: 700; }
+.wallet-choice:hover { border-color: #527b83; }
+.wallet-choice:disabled { opacity: .6; cursor: default; }
+.wallet-choice img { border-radius: 5px; }
+.wallet-choice-dot { width: 14px; height: 14px; border-radius: 99px; background: var(--cyan); display: inline-block; }

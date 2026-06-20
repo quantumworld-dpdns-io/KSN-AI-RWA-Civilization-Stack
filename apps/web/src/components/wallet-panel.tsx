@@ -94,12 +94,30 @@ export function WalletPanel() {
     );
   }
 
+  const singleWallet = w.wallets.length === 1;
+
   return (
     <section className="panel">
       <PanelTitle kicker="On-chain participation" title="Connect wallet & act"
         aside={w.address
           ? <button className="secondary" onClick={w.disconnect}>Disconnect</button>
-          : <button className="primary" onClick={w.connect} disabled={w.connecting}>{w.connecting ? "Connecting…" : "Connect wallet"}</button>} />
+          : singleWallet
+            ? <button className="primary" onClick={() => w.connect(w.wallets[0])} disabled={w.connecting}>{w.connecting ? "Connecting…" : `Connect ${w.wallets[0].info.name}`}</button>
+            : undefined} />
+
+      {!w.address && w.wallets.length > 1 && (
+        <div className="wallet-picker">
+          <p className="muted-line">Multiple wallets detected — choose one:</p>
+          <div className="wallet-picker-list">
+            {w.wallets.map((detail) => (
+              <button key={detail.info.uuid} className="wallet-choice" onClick={() => w.connect(detail)} disabled={w.connecting}>
+                {detail.info.icon ? <img src={detail.info.icon} alt="" width={20} height={20} /> : <span className="wallet-choice-dot" />}
+                {detail.info.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {w.error && <p className="error">{w.error}</p>}
 
