@@ -10,7 +10,6 @@ RUN pnpm install --frozen-lockfile=false
 RUN pnpm --filter @aks/oracle-sim... build
 RUN node infra/scripts/fix-esm-extensions.mjs \
     packages/core/dist \
-    packages/shared/dist \
     packages/oracle-sim/dist
 
 # ============================================================
@@ -24,17 +23,18 @@ FROM node:20-alpine AS runner
 RUN apk add --no-cache redis supervisor
 
 WORKDIR /app
-
-# ---- Copy built oracle-sim artifacts ----
 RUN corepack enable pnpm
-COPY package.json pnpm-workspace.yaml ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/core/package.json ./packages/core/
+
+# Copy only workspace manifests needed for a production install
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/core/package.json packages/core/
+COPY packages/oracle-sim/package.json packages/oracle-sim/
 COPY --from=builder /app/packages/core/dist ./packages/core/dist
-COPY --from=builder /app/packages/shared/package.json ./packages/shared/
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/oracle-sim/package.json ./packages/oracle-sim/
 COPY --from=builder /app/packages/oracle-sim/dist ./packages/oracle-sim/dist
+
+# Install runtime deps only (excludes vitest, esbuild, protobufjs, etc.)
+ENV CI=true NODE_ENV=production
+RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts
 
 # ---- supervisord configuration ----
 COPY infra/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -52,8 +52,6 @@ RUN addgroup -g 10014 -S app \
 EXPOSE 8787
 # Redis is internal only; not exposed externally
 EXPOSE 6379
-
-ENV NODE_ENV=production
 
 # Switch to non-root user before running supervisord
 USER 10014

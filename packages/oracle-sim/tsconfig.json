@@ -7,9 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@aks/core": ["../core/dist/index.d.ts"],
-      "@aks/shared": ["../shared/dist/index.d.ts"],
-      "@aks/shared/redis": ["../shared/dist/redis/index.d.ts"]
+      "@aks/core": ["../core/dist/index.d.ts"]
     }
   },
   "include": ["src"],

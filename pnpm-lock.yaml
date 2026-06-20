@@ -102,12 +102,12 @@ importers:
       '@aks/core':
         specifier: workspace:*
         version: link:../core
-      '@aks/shared':
-        specifier: workspace:*
-        version: link:../shared
       fastify:
         specifier: ^5.2.1
         version: 5.8.5
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.11.1
       zod:
         specifier: ^4.4.3
         version: 4.4.3
