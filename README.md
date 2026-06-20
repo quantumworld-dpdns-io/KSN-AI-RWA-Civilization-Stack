@@ -205,3 +205,14 @@ See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 ## License
 
 MIT for code. Narrative and documentation may be adapted with attribution.
+All three contracts are live:
+
+  ┌──────────────────┬────────────────────────────────────────────┬───────────┐
+  │     Contract     │                  Address                   │ Etherscan │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ KSNOracleAdapter │ 0x97325aF4DB15D33c92FF3e1e0dBaE8D7A73A750d │ view      │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ AIAgentTreasury  │ 0x6044eE4AcBb84b56DD1FD579112158Cbcb51eF42 │ view      │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ ComputeEnergyRWA │ 0xa6FBb4EEC5335Ea1CC6E332695946D75D7D858CD │ view      │
+  └──────────────────┴────────────────────────────────────────────┴───────────┘

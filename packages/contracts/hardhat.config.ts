@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createRequire } from "node:module";
 import { configVariable, type HardhatUserConfig } from "hardhat/config";
 import hardhatEthers from "@nomicfoundation/hardhat-ethers";
