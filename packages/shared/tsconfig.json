@@ -4,9 +4,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "noEmit": false,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "rewriteRelativeImportExtensions": true
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

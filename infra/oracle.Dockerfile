@@ -6,6 +6,10 @@ ENV CI=true
 COPY . .
 RUN pnpm install --frozen-lockfile=false
 RUN pnpm --filter @aks/oracle-sim... build
+RUN node infra/scripts/fix-esm-extensions.mjs \
+    packages/core/dist \
+    packages/shared/dist \
+    packages/oracle-sim/dist
 
 # Stage 2: Runner
 FROM node:20-alpine AS runner
