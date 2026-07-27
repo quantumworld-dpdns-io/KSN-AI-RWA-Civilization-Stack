@@ -1,0 +1,21 @@
+{
+  "name": "@aks/sui-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sui Move contracts for KSN microgrid Agentic Web MVP",
+  "scripts": {
+    "build": "sui move build --build-env testnet",
+    "test": "sui move test --build-env testnet",
+    "publish:local": "tsx scripts/publish.ts",
+    "lint": "sui move build",
+    "typecheck": "echo 'Move package — use sui move build'"
+  },
+  "devDependencies": {
+    "@mysten/sui": "^1.28.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

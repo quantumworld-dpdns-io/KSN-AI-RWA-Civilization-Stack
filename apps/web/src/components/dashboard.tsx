@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import type { AssetTelemetry, OracleCapabilities, ServiceHealth, SimulationResult } from "@/lib/types";
 import sepoliaDeployment from "@/generated/contracts.sepolia.json";
 import { WalletPanel } from "@/components/wallet-panel";
+import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 2 });
 const decimal = new Intl.NumberFormat("en", { maximumFractionDigits: 3 });
 const usd = new Intl.NumberFormat("en", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
-type View = "overview" | "assets" | "oracle" | "simulator" | "contracts";
+type View = "overview" | "assets" | "oracle" | "simulator" | "contracts" | "sui";
 
 export function Dashboard({ initialTelemetry, initialHealth, initialCapabilities }: { initialTelemetry: AssetTelemetry[]; initialHealth: ServiceHealth; initialCapabilities: OracleCapabilities }) {
   const [view, setView] = useState<View>("overview");
@@ -81,6 +82,7 @@ export function Dashboard({ initialTelemetry, initialHealth, initialCapabilities
           <NavButton active={view === "oracle"} onClick={() => setView("oracle")} icon="⌁">Oracle health</NavButton>
           <NavButton active={view === "simulator"} onClick={() => setView("simulator")} icon="∿">KSN simulator</NavButton>
           <NavButton active={view === "contracts"} onClick={() => setView("contracts")} icon="⬡">Sepolia contracts</NavButton>
+          <NavButton active={view === "sui"} onClick={() => setView("sui")} icon="◎">Sui microgrid</NavButton>
         </nav>
         <div className="sidebar-status">
           <div className="status-row"><span className={`status-dot ${health.oracle}`} />Oracle API <b>{health.oracle}</b></div>
@@ -107,14 +109,26 @@ export function Dashboard({ initialTelemetry, initialHealth, initialCapabilities
             {view === "oracle" && <OracleHealth health={health} telemetry={telemetry} selected={selected} select={setSelectedId} capabilities={capabilities} history={history} historyLoading={historyLoading} forceRefresh={forceRefreshAsset} error={actionError} />}
             {view === "simulator" && <Simulator />}
             {view === "contracts" && <SettlementContracts />}
+            {view === "sui" && <SuiMicrogridPanel />}
           </>
-        ) : <div className="panel empty">No telemetry is available.</div>}
+        ) : view === "sui" ? (
+          <SuiMicrogridPanel />
+        ) : (
+          <div className="panel empty">No telemetry is available.</div>
+        )}
       </main>
     </div>
   );
 }
 
-const titles: Record<View, string> = { overview: "Network overview", assets: "Asset network", oracle: "Oracle & cache health", simulator: "KSN scenario simulator", contracts: "Sepolia settlement contracts" };
+const titles: Record<View, string> = {
+  overview: "Network overview",
+  assets: "Asset network",
+  oracle: "Oracle & cache health",
+  simulator: "KSN scenario simulator",
+  contracts: "Sepolia settlement contracts",
+  sui: "Sui Agentic Microgrid",
+};
 
 function Overview({ telemetry, selected, select }: { telemetry: AssetTelemetry[]; selected: AssetTelemetry; select: (id: string) => void }) {
   const totalPower = telemetry.reduce((sum, item) => sum + item.asset.powerWatts, 0);

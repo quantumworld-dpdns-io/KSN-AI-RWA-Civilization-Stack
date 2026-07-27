@@ -1,0 +1,9 @@
+[package]
+name = "ksn_microgrid"
+edition = "2024"
+version = "0.1.0"
+
+[dependencies]
+
+[addresses]
+ksn_microgrid = "0x0"

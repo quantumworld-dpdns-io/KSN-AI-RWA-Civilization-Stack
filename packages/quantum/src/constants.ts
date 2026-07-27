@@ -1,0 +1,6 @@
+export const QUANTUM_CONSTANTS = {
+  PLANCK_CONSTANT: 6.62607015e-34,
+  BOLTZMANN_CONSTANT: 1.380649e-23,
+  MAX_LOCAL_QUBITS: 24, // Typical limit for local sim
+  DEFAULT_SHOTS: 1024,
+};

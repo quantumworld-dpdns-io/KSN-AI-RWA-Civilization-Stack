@@ -1,0 +1,28 @@
+{
+  "name": "@aks/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "BROWSER=none expo start --tunnel",
+    "web": "expo start --web --port 0",
+    "web:ci": "CI=1 BROWSER=none expo start --web --offline --port 0",
+    "build": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "expo": "^56.0.11",
+    "expo-status-bar": "^3.0.8",
+    "expo-secure-store": "^56.0.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native": "^0.86.0",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/node": "^25.9.3",
+    "typescript": "^5.9.3"
+  }
+}

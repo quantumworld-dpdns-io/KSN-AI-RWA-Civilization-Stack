@@ -2,14 +2,16 @@
 
 **Total Todos: 1,010** across **10 Phases** | **Timeline: 18–24 Months**
 
+> Naming note: several TODO items refer to future packages such as `packages/oracle` and `packages/agents`. The current repository ships `packages/oracle-sim`, `packages/core`, `packages/shared`, `packages/contracts`, `packages/quantum` as a stub, and `apps/web`. Treat the TODO package names as roadmap targets unless a matching package already exists in the repo.
+
 ---
 
 ## Phase Overview
 
 | Phase | Name | Todos | Duration | Status |
 |-------|------|-------|----------|--------|
-| 1 | Foundation & Infrastructure Stabilization | 110 | Months 1–3 | [TODO](TODO-phase-1.md) |
-| 2 | Core Simulation Engine Enhancement | 105 | Months 2–5 | [TODO](TODO-phase-2.md) |
+| 1 | Foundation & Infrastructure Stabilization | 110 | Months 1–3 | [COMPLETED](TODO-phase-1.md) |
+| 2 | Core Simulation Engine Enhancement | 105 | Months 2–5 | [IN PROGRESS](TODO-phase-2.md) |
 | 3 | Quantum Computing Integration (CUDA-Q + Qiskit) | 100 | Months 4–9 | [TODO](TODO-phase-3.md) |
 | 4 | Oracle & Verification Layer Hardening | 105 | Months 5–8 | [TODO](TODO-phase-4.md) |
 | 5 | Smart Contract Security & Testing | 100 | Months 6–10 | [TODO](TODO-phase-5.md) |
