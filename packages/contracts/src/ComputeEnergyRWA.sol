@@ -50,6 +50,9 @@ contract ComputeEnergyRWA is ERC20, AccessControl, Pausable {
         require(oracle_ != address(0), "invalid oracle");
         require(admin_ != address(0), "invalid admin");
         require(vaults_.length == 5, "five vaults required");
+        for (uint256 i = 0; i < vaults_.length; i++) {
+            require(vaults_[i] != address(0), "invalid vault");
+        }
 
         assetId = assetId_;
         oracle = IKSNOracleAdapter(oracle_);
@@ -100,5 +103,10 @@ contract ComputeEnergyRWA is ERC20, AccessControl, Pausable {
 
     function humanInvestorBps() public view returns (uint256) {
         return 10_000 - maintenanceBps - insuranceBps - aiTreasuryBps - planetaryDividendBps - retainedExpansionBps;
+    }
+
+    /// @dev Pausing freezes token movement as well as operational reporting.
+    function _update(address from, address to, uint256 value) internal override whenNotPaused {
+        super._update(from, to, value);
     }
 }

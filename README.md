@@ -7,6 +7,9 @@ This repository is a concept-to-prototype scaffold for merging two narratives:
 1. **Kardashev / KSN RWA path** — real-world assets evolve from buildings and debt into energy, compute, microgrids, orbital solar, and stellar-scale infrastructure.
 2. **12 Scenes of AI path** — AI evolves from a tool that optimizes RWA portfolios into an autonomous economic actor that issues, owns, governs, and eventually abstracts infrastructure into planetary dividends.
 
+## demo video
+<https://youtu.be/Y_3UZ5HFIyo>
+
 The core metric used in this prototype is:
 
 ```math
@@ -36,7 +39,7 @@ The implementation goal is to prove that this loop is coherent, testable, and re
 ```txt
 .
 ├── apps/
-│   └── web/                    # React/Vite dashboard and civilization simulator
+│   └── web/                    # Next.js dashboard and civilization simulator
 ├── packages/
 │   ├── core/                   # Shared TypeScript simulation engine
 │   ├── oracle-sim/             # Mock oracle API for energy, hashrate, and asset telemetry
@@ -132,6 +135,41 @@ It returns:
 - Carbon intensity.
 - Geopolitical/legal risk signal.
 
+The service also computes the KSN/Kardashev snapshot, yield allocation, AI autonomy risk, and oracle confidence for every reading. Telemetry payloads are hashed and HMAC-signed.
+
+### Combined Oracle + Redis runtime
+
+[`infra/oracle-redis.Dockerfile`](infra/oracle-redis.Dockerfile) packages the Oracle API and a loopback-only Redis instance into one non-root container. Redis provides current-snapshot caching and a bounded telemetry audit history; SQL persistence is intentionally external to this image.
+
+Required production environment variables:
+
+```bash
+REDIS_PASSWORD=<strong-random-password>
+ORACLE_SIGNING_SECRET=<strong-random-signing-secret>
+```
+
+Both production secrets must contain at least 16 characters; use substantially longer randomly generated values for real deployments.
+
+Optional tuning:
+
+```bash
+TELEMETRY_CACHE_TTL_SECONDS=300
+TELEMETRY_HISTORY_LIMIT=500
+```
+
+The runtime exposes only the Oracle HTTP port (`8787`). Redis binds to `127.0.0.1` inside the container. Readiness at `GET /ready` requires both processes to be operational.
+
+| README capability | Runtime evidence |
+|---|---|
+| Energy, compute, utilization | `GET /telemetry` and `GET /telemetry/:assetId` |
+| Maintenance, carbon, geopolitical/legal risk | `signals` in each telemetry payload |
+| KSN/Kardashev, yield, AI autonomy | Calculated fields in telemetry and `POST /simulate` |
+| AI agency ladder | `agency` stage, description, next stage, and simulated operating policy in each result |
+| AI policy and kill-switch constraints | Non-executing simulation mode, approval boundary, price ceiling, and kill-switch declaration in `agency.safetyControls` |
+| Oracle integrity | SHA-256 payload hash and HMAC-SHA256 signature |
+| Redis cache and audit trail | Current snapshots and `GET /telemetry/:assetId/history` |
+| Runtime discovery | `GET /capabilities`, `/health`, `/ready`, `/health/redis` |
+
 ### `packages/contracts`
 
 Solidity skeletons for:
@@ -139,6 +177,8 @@ Solidity skeletons for:
 - `ComputeEnergyRWA.sol` — tokenized compute-energy asset.
 - `KSNOracleAdapter.sol` — oracle adapter interface.
 - `AIAgentTreasury.sol` — autonomous treasury policy shell.
+
+The prototype suite is configured for Ethereum Sepolia publication. See [`packages/contracts/README.md`](packages/contracts/README.md) for the guarded deployment flow. Once deployed, addresses and Etherscan links are displayed by the dashboard’s **Sepolia contracts** view.
 
 ---
 
@@ -180,3 +220,15 @@ See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 ## License
 
 MIT for code. Narrative and documentation may be adapted with attribution.
+All three contracts are live:
+
+  ┌──────────────────┬────────────────────────────────────────────┬───────────┐
+  │     Contract     │                  Address                   │ Etherscan │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ KSNOracleAdapter │ 0x97325aF4DB15D33c92FF3e1e0dBaE8D7A73A750d │ view      │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ AIAgentTreasury  │ 0x6044eE4AcBb84b56DD1FD579112158Cbcb51eF42 │ view      │
+  ├──────────────────┼────────────────────────────────────────────┼───────────┤
+  │ ComputeEnergyRWA │ 0xa6FBb4EEC5335Ea1CC6E332695946D75D7D858CD │ view      │
+  └──────────────────┴────────────────────────────────────────────┴───────────┘
+  

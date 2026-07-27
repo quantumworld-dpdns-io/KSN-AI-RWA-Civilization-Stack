@@ -30,6 +30,9 @@ export interface InfrastructureAsset {
   maintenanceCostRate: number;
   riskScore: number;
   agencyStage: AgencyStage;
+  carbonIntensityKgCo2ePerKwh?: number;
+  geopoliticalRiskScore?: number;
+  legalRiskScore?: number;
   energySource?: EnergySource;
   computeArchitecture?: ComputeArchitecture;
   topology?: NetworkTopology;

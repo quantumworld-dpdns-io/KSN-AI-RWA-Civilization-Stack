@@ -11,7 +11,15 @@ export const SAMPLE_ASSETS: InfrastructureAsset[] = [
     revenuePerComputeUnit: 1.4e-15,
     maintenanceCostRate: 0.09,
     riskScore: 0.22,
-    agencyStage: "AI_MANAGED"
+    agencyStage: "AI_MANAGED",
+    carbonIntensityKgCo2ePerKwh: 0.08,
+    geopoliticalRiskScore: 0.18,
+    legalRiskScore: 0.24,
+    energySource: "SOLAR",
+    computeArchitecture: "GPU",
+    topology: "MESH",
+    region: "APAC",
+    complianceStatus: "COMPLIANT"
   },
   {
     id: "type-10-planetary-grid-dao",
@@ -23,7 +31,15 @@ export const SAMPLE_ASSETS: InfrastructureAsset[] = [
     revenuePerComputeUnit: 2.2e-22,
     maintenanceCostRate: 0.05,
     riskScore: 0.46,
-    agencyStage: "PLANETARY_AI_ALLOCATOR"
+    agencyStage: "PLANETARY_AI_ALLOCATOR",
+    carbonIntensityKgCo2ePerKwh: 0.025,
+    geopoliticalRiskScore: 0.42,
+    legalRiskScore: 0.51,
+    energySource: "FUSION",
+    computeArchitecture: "QPU",
+    topology: "HYPERCUBE",
+    region: "DEEP_SPACE",
+    complianceStatus: "SOVEREIGN"
   },
   {
     id: "type-20-orbital-solar-array",
@@ -35,6 +51,14 @@ export const SAMPLE_ASSETS: InfrastructureAsset[] = [
     revenuePerComputeUnit: 3.5e-33,
     maintenanceCostRate: 0.03,
     riskScore: 0.68,
-    agencyStage: "KARDASHEV_CONVERGENCE"
+    agencyStage: "KARDASHEV_CONVERGENCE",
+    carbonIntensityKgCo2ePerKwh: 0.004,
+    geopoliticalRiskScore: 0.61,
+    legalRiskScore: 0.73,
+    energySource: "SOLAR",
+    computeArchitecture: "QPU",
+    topology: "ORBITAL_RING",
+    region: "ORBITAL",
+    complianceStatus: "SOVEREIGN"
   }
 ];

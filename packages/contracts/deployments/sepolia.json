@@ -1,0 +1,19 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x556C7223e63159E9945E73dE36866eF0e3eea687",
+  "blockNumber": 11098735,
+  "deployedAt": "2026-06-20T03:28:02.444Z",
+  "assetId": "0xda555d72bc4afc923859f2df5906788f222a0cec5a9e80316dc8b1e195112168",
+  "contracts": {
+    "KSNOracleAdapter": "0x97325aF4DB15D33c92FF3e1e0dBaE8D7A73A750d",
+    "AIAgentTreasury": "0x6044eE4AcBb84b56DD1FD579112158Cbcb51eF42",
+    "ComputeEnergyRWA": "0xa6FBb4EEC5335Ea1CC6E332695946D75D7D858CD"
+  },
+  "transactions": {
+    "KSNOracleAdapter": "0xfc861cae94d68be37da12f70b1c5382b29e3dc1d6b98201367dcf015637ace4a",
+    "AIAgentTreasury": "0x97ad16248af39148d77858aa256c2307f0a79e0ffdad24d74018ebeccd75d41a",
+    "ComputeEnergyRWA": "0x6ab585f0415d6fe5f4c734f6f97d5796cb9bd4f536e40ed1c4f8c0b0a4f9fb12"
+  },
+  "explorer": "https://sepolia.etherscan.io"
+}

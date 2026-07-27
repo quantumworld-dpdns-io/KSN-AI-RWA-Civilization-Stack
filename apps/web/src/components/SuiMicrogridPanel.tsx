@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 const AGENCY_LABELS: Record<number, string> = {
@@ -18,8 +20,8 @@ interface MicrogridFields {
 }
 
 export function SuiMicrogridPanel() {
-  const rpcUrl = import.meta.env.VITE_SUI_RPC_URL ?? "http://127.0.0.1:9000";
-  const microgridId = import.meta.env.VITE_SUI_MICROGRID_ID;
+  const rpcUrl = process.env.NEXT_PUBLIC_SUI_RPC_URL ?? "http://127.0.0.1:9000";
+  const microgridId = process.env.NEXT_PUBLIC_SUI_MICROGRID_ID;
   const [fields, setFields] = useState<MicrogridFields | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +56,7 @@ export function SuiMicrogridPanel() {
       }
     }
 
-    load();
+    void load();
   }, [microgridId, rpcUrl]);
 
   if (!microgridId) {
@@ -62,8 +64,8 @@ export function SuiMicrogridPanel() {
       <section className="panel">
         <h2>Sui Microgrid (Agentic Web MVP)</h2>
         <p className="muted">
-          Set <code>VITE_SUI_MICROGRID_ID</code> after running <code>pnpm sui:demo</code> to mirror on-chain
-          telemetry here.
+          Set <code>NEXT_PUBLIC_SUI_MICROGRID_ID</code> after running <code>pnpm sui:demo</code> to mirror
+          on-chain telemetry here.
         </p>
       </section>
     );
