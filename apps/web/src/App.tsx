@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { SuiMicrogridPanel } from "./components/SuiMicrogridPanel";
 import {
   SAMPLE_ASSETS,
   describeAgencyStage,
@@ -75,6 +76,8 @@ export function App() {
           <Bar label="Retained expansion" value={model.yieldDistribution.retainedForExpansion} total={model.yieldDistribution.grossRevenue} />
         </div>
       </section>
+
+      <SuiMicrogridPanel />
 
       <section className="panel">
         <h2>Integrated narrative</h2>
