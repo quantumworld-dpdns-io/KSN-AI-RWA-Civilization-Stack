@@ -5,3 +5,4 @@ auto_commit.sh
 mobile/.env
 /node_modules
 /mobile/.expo/dev/logs
+/.cursor
