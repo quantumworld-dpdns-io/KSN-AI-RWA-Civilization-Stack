@@ -25,3 +25,4 @@ packages/contracts/deployments/default.json
 packages/sui-contracts/build/
 packages/sui-contracts/Pub.local.toml
 .env
+/mobile/node_modules
