@@ -1,9 +1,10 @@
 # ============================================================
 # Stage 1: Build oracle-sim (pnpm monorepo)
 # ============================================================
-FROM node:20-alpine AS builder
+FROM node:24-bookworm-slim AS builder
 WORKDIR /app
-RUN corepack enable pnpm
+RUN npm install -g npm@11.18.0 pnpm@10.34.5 \
+    && npm cache clean --force
 ENV CI=true
 COPY . .
 RUN pnpm install --filter @aks/oracle-sim... --frozen-lockfile=false
@@ -18,10 +19,11 @@ RUN node infra/scripts/fix-esm-extensions.mjs \
 # production defaults to the in-memory store and runs a single
 # Node.js process without Redis or supervisord.
 # ============================================================
-FROM node:20-bookworm-slim AS runner
+FROM node:24-bookworm-slim AS runner
 
 WORKDIR /app
-RUN corepack enable pnpm
+RUN npm install -g npm@11.18.0 pnpm@10.34.5 \
+    && npm cache clean --force
 
 # Copy only workspace manifests needed for a production install
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
