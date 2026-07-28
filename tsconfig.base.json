@@ -16,6 +16,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@aks/core": ["packages/core/src/index.ts"],
       "@aks/oracle-sim": ["packages/oracle-sim/src/index.ts"],

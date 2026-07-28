@@ -12,9 +12,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "baseUrl": ".",
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/*": ["apps/web/src/*"],
+      "@aks/core": ["packages/core/src/index.ts"],
+      "@aks/oracle-sim": ["packages/oracle-sim/src/index.ts"],
+      "@aks/shared": ["packages/shared/src/index.ts"],
+      "@aks/contracts": ["packages/contracts/src/index.ts"]
+    },
     "noEmit": true,
     "jsx": "react-jsx"
   },
