@@ -4,6 +4,7 @@ import type { TelemetryStore } from "./store";
 import { getAssetTelemetry, verifyTelemetrySignature, type AssetTelemetry } from "./telemetry";
 
 class MemoryTelemetryStore implements TelemetryStore {
+  kind: "memory" = "memory";
   currentById = new Map<string, AssetTelemetry>();
   historyById = new Map<string, AssetTelemetry[]>();
 
@@ -95,7 +96,8 @@ describe("oracle telemetry", () => {
     const previous = {
       NODE_ENV: process.env.NODE_ENV,
       REDIS_PASSWORD: process.env.REDIS_PASSWORD,
-      ORACLE_SIGNING_SECRET: process.env.ORACLE_SIGNING_SECRET
+      ORACLE_SIGNING_SECRET: process.env.ORACLE_SIGNING_SECRET,
+      ORACLE_STORE: process.env.ORACLE_STORE
     };
     try {
       process.env.NODE_ENV = "production";
@@ -108,10 +110,14 @@ describe("oracle telemetry", () => {
       process.env.REDIS_PASSWORD = "redis-password-32-characters-long";
       process.env.ORACLE_SIGNING_SECRET = "oracle-signing-secret-32-characters";
       expect(() => validateRuntimeConfiguration()).not.toThrow();
+      process.env.ORACLE_STORE = "memory";
+      delete process.env.REDIS_PASSWORD;
+      expect(() => validateRuntimeConfiguration()).not.toThrow();
     } finally {
       restoreEnvironment("NODE_ENV", previous.NODE_ENV);
       restoreEnvironment("REDIS_PASSWORD", previous.REDIS_PASSWORD);
       restoreEnvironment("ORACLE_SIGNING_SECRET", previous.ORACLE_SIGNING_SECRET);
+      restoreEnvironment("ORACLE_STORE", previous.ORACLE_STORE);
     }
   });
 });

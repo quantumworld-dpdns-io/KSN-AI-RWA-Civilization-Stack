@@ -2,7 +2,7 @@ import { pathToFileURL } from "node:url";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
 import { closeRedisClient } from "./redis";
-import { RedisTelemetryStore, type TelemetryStore } from "./store";
+import { MemoryTelemetryStore, RedisTelemetryStore, type TelemetryStore } from "./store";
 import {
   buildTelemetry,
   getAssetTelemetry,
@@ -38,7 +38,7 @@ export interface BuildAppOptions {
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: options.logger ?? true });
-  const store = options.store ?? new RedisTelemetryStore();
+  const store = options.store ?? createTelemetryStore();
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -53,7 +53,8 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     return {
       status: redis ? "ok" : "degraded",
       service: "aks-oracle-sim",
-      redis: redis ? "connected" : "unavailable",
+      redis: store.kind === "memory" ? "memory" : redis ? "connected" : "unavailable",
+      persistence: store.kind,
       signing: isProductionSigningConfigured() ? "configured" : "development-key",
       timestamp: new Date().toISOString()
     };
@@ -61,17 +62,25 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   app.get("/ready", async (_request, reply) => {
     const ready = await redisHealth(store);
-    return reply.code(ready ? 200 : 503).send({ status: ready ? "ready" : "not_ready", redis: ready ? "connected" : "unavailable" });
+    return reply.code(ready ? 200 : 503).send({
+      status: ready ? "ready" : "not_ready",
+      redis: store.kind === "memory" ? "memory" : ready ? "connected" : "unavailable",
+      persistence: store.kind
+    });
   });
 
   app.get("/health/redis", async (_request, reply) => {
     const connected = await redisHealth(store);
-    return reply.code(connected ? 200 : 503).send({ status: connected ? "ok" : "error", redis: connected ? "connected" : "unavailable" });
+    return reply.code(connected ? 200 : 503).send({
+      status: connected ? "ok" : "error",
+      redis: store.kind === "memory" ? "memory" : connected ? "connected" : "unavailable",
+      persistence: store.kind
+    });
   });
 
   app.get("/capabilities", async () => ({
     service: "aks-oracle-sim",
-    persistence: "redis",
+    persistence: store.kind,
     sqlPersistence: false,
     telemetry: ["energy", "compute", "utilization", "maintenance", "carbon", "geopolitical-risk", "legal-risk"],
     calculations: ["ksn-score", "kardashev-type", "yield-distribution", "autonomy-risk", "oracle-confidence"],
@@ -93,7 +102,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
       const items = await store.history(assetId, limit);
       return { assetId, count: items.length, items };
     } catch (error) {
-      request.log.warn({ error }, "Redis history unavailable");
+      request.log.warn({ error, persistence: store.kind }, "Telemetry history unavailable");
       return reply.code(503).send({ error: "telemetry_history_unavailable" });
     }
   });
@@ -144,8 +153,12 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     };
   });
 
-  if (!options.store) app.addHook("onClose", async () => closeRedisClient());
+  if (!options.store && store.kind === "redis") app.addHook("onClose", async () => closeRedisClient());
   return app;
+}
+
+function createTelemetryStore(): TelemetryStore {
+  return process.env.ORACLE_STORE === "memory" ? new MemoryTelemetryStore() : new RedisTelemetryStore();
 }
 
 async function resolveSnapshot(store: TelemetryStore, generated: AssetTelemetry, force: boolean): Promise<AssetTelemetry> {
@@ -183,9 +196,13 @@ export async function start(): Promise<void> {
 
 export function validateRuntimeConfiguration(): void {
   if (process.env.NODE_ENV !== "production") return;
-  const missing = ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"].filter((name) => !process.env[name]);
+  const requiredSecrets =
+    process.env.ORACLE_STORE === "memory"
+      ? ["ORACLE_SIGNING_SECRET"]
+      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"];
+  const missing = requiredSecrets.filter((name) => !process.env[name]);
   if (missing.length) throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
-  const weak = ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"].filter((name) => process.env[name]!.length < 16);
+  const weak = requiredSecrets.filter((name) => process.env[name]!.length < 16);
   if (weak.length) throw new Error(`Production secrets must contain at least 16 characters: ${weak.join(", ")}`);
 }
 

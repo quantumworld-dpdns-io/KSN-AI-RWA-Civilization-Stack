@@ -3,6 +3,7 @@ import { getRedisClient } from "./redis";
 import type { AssetTelemetry } from "./telemetry";
 
 export interface TelemetryStore {
+  kind: "redis" | "memory";
   ping(): Promise<boolean>;
   save(snapshot: AssetTelemetry): Promise<void>;
   current(assetId: string): Promise<AssetTelemetry | null>;
@@ -10,6 +11,8 @@ export interface TelemetryStore {
 }
 
 export class RedisTelemetryStore implements TelemetryStore {
+  kind: "redis" = "redis";
+
   constructor(
     private readonly client: Redis = getRedisClient(),
     private readonly historyLimit = positiveInteger(process.env.TELEMETRY_HISTORY_LIMIT, 500),
@@ -44,6 +47,31 @@ export class RedisTelemetryStore implements TelemetryStore {
   async history(assetId: string, limit: number): Promise<AssetTelemetry[]> {
     const values = await this.client.zrevrange(`aks:oracle:history:${assetId}`, 0, Math.max(0, limit - 1));
     return values.map(parseSnapshot);
+  }
+}
+
+export class MemoryTelemetryStore implements TelemetryStore {
+  kind: "memory" = "memory";
+  private readonly currentById = new Map<string, AssetTelemetry>();
+  private readonly historyById = new Map<string, AssetTelemetry[]>();
+  private readonly historyLimit = positiveInteger(process.env.TELEMETRY_HISTORY_LIMIT, 500);
+
+  async ping(): Promise<boolean> {
+    return true;
+  }
+
+  async save(snapshot: AssetTelemetry): Promise<void> {
+    this.currentById.set(snapshot.asset.id, snapshot);
+    const history = [...(this.historyById.get(snapshot.asset.id) ?? []), snapshot];
+    this.historyById.set(snapshot.asset.id, history.slice(-this.historyLimit));
+  }
+
+  async current(assetId: string): Promise<AssetTelemetry | null> {
+    return this.currentById.get(assetId) ?? null;
+  }
+
+  async history(assetId: string, limit: number): Promise<AssetTelemetry[]> {
+    return (this.historyById.get(assetId) ?? []).slice(-limit).reverse();
   }
 }
 

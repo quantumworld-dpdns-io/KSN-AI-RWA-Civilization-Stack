@@ -13,14 +13,12 @@ RUN node infra/scripts/fix-esm-extensions.mjs \
     packages/oracle-sim/dist
 
 # ============================================================
-# Stage 2: Combined runtime — Redis + oracle-sim
-# Uses supervisord to manage both processes in one container,
-# required for single-container platforms like Choreo.
+# Stage 2: Runtime — oracle-sim only
+# Choreo builds were failing while installing OS packages, so
+# production defaults to the in-memory store and runs a single
+# Node.js process without Redis or supervisord.
 # ============================================================
-FROM node:20-alpine AS runner
-
-# Install Redis and supervisord from Alpine apk
-RUN apk add --no-cache redis supervisor
+FROM node:20-bookworm-slim AS runner
 
 WORKDIR /app
 RUN corepack enable pnpm
@@ -36,14 +34,11 @@ COPY --from=builder /app/packages/oracle-sim/dist ./packages/oracle-sim/dist
 ENV CI=true NODE_ENV=production
 RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts
 
-# ---- supervisord configuration ----
-COPY infra/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 # ---- Create non-root user for Choreo security compliance ----
 # CKV_DOCKER_3: non-root user required
 # CKV_CHOREO_1: UID must be between 10000 and 20000
-RUN addgroup -g 10014 -S app \
-    && adduser -S -u 10014 -G app app \
+RUN groupadd --gid 10014 app \
+    && useradd --uid 10014 --gid app --create-home --shell /usr/sbin/nologin app \
     && mkdir -p /data /run/supervisor \
     && chown -R app:app /app /data /run/supervisor \
     && chmod -R 755 /app /data /run/supervisor
@@ -51,10 +46,7 @@ RUN addgroup -g 10014 -S app \
 # oracle-sim HTTP port (Choreo will route external traffic here)
 EXPOSE 8787
 
-# Redis persistence. Mount durable storage at /data in production.
-VOLUME ["/data"]
-
-# Readiness requires both the HTTP service and its Redis persistence layer.
+# Readiness verifies the HTTP service. Persistence is in-memory in this image.
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -q --spider http://127.0.0.1:8787/ready || exit 1
 
@@ -63,5 +55,6 @@ STOPSIGNAL SIGTERM
 # Switch to non-root user before running supervisord
 USER 10014
 
-# supervisord runs as PID 1 and manages both child processes
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+ENV ORACLE_STORE=memory
+
+CMD ["node", "/app/packages/oracle-sim/dist/server.js"]

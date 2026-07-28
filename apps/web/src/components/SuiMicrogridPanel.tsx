@@ -52,7 +52,7 @@ export function SuiMicrogridPanel() {
         }
         setFields(nested);
       } catch {
-        setError("Unable to reach Sui RPC. Run pnpm sui:demo locally.");
+        setError("Unable to reach the configured Sui RPC. Use a public testnet RPC for production.");
       }
     }
 
@@ -64,8 +64,9 @@ export function SuiMicrogridPanel() {
       <section className="panel">
         <h2>Sui Microgrid (Agentic Web MVP)</h2>
         <p className="muted">
-          Set <code>NEXT_PUBLIC_SUI_MICROGRID_ID</code> after running <code>pnpm sui:demo</code> to mirror
-          on-chain telemetry here.
+          Production requires a public Sui RPC plus a published testnet microgrid object. Set{" "}
+          <code>NEXT_PUBLIC_SUI_RPC_URL</code> and <code>NEXT_PUBLIC_SUI_MICROGRID_ID</code> after publishing
+          the demo to Sui testnet.
         </p>
       </section>
     );
