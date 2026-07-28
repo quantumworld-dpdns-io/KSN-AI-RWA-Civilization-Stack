@@ -1,19 +1,30 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { AgentConfig, DemoDeployment } from "./types.js";
 
+function candidateDemoPaths(): string[] {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return [
+    join(here, "../../sui-contracts/deployments/demo-state.json"),
+    join(process.cwd(), "packages/sui-contracts/deployments/demo-state.json"),
+    join(process.cwd(), "../sui-contracts/deployments/demo-state.json"),
+    join(process.cwd(), "deployments/demo-state.json"),
+  ];
+}
+
 function readDemoDeployment(): DemoDeployment | null {
-  const path = join(process.cwd(), "packages/sui-contracts/deployments/demo-state.json");
-  try {
-    return JSON.parse(readFileSync(path, "utf8")) as DemoDeployment;
-  } catch {
-    const repoPath = join(process.cwd(), "../../packages/sui-contracts/deployments/demo-state.json");
+  for (const path of candidateDemoPaths()) {
+    if (!existsSync(path)) {
+      continue;
+    }
     try {
-      return JSON.parse(readFileSync(repoPath, "utf8")) as DemoDeployment;
+      return JSON.parse(readFileSync(path, "utf8")) as DemoDeployment;
     } catch {
-      return null;
+      // try next candidate
     }
   }
+  return null;
 }
 
 export function loadAgentConfig(): AgentConfig {

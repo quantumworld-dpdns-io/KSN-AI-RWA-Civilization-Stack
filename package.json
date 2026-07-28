@@ -24,7 +24,7 @@
     "check": "biome check --write .",
     "typecheck": "pnpm -r typecheck",
     "prepare": "husky install",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "node scripts/debug-build-context.mjs && npx only-allow pnpm"
   },
   "keywords": [
     "rwa",
@@ -46,7 +46,7 @@
     "only-allow": "^1.2.1"
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

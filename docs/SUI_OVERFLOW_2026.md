@@ -75,6 +75,7 @@ pnpm --filter @aks/sui-contracts exec tsx scripts/setup-demo.ts
 
 # 4. Run agent loop
 pnpm --filter @aks/agent start:once   # single cycle
+pnpm --filter @aks/agent start:demo   # Scene 3→6→10→12 until settle
 pnpm --filter @aks/agent start        # continuous polling
 ```
 

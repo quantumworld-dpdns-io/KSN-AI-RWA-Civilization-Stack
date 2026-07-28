@@ -11,7 +11,8 @@ const packageRoot = join(__dirname, "..");
 const TAIPEI_FIXTURE = {
   name: "Type 0.7 Taipei Microgrid GPU Cluster",
   assetId: "type-07-taipei-microgrid-gpu",
-  powerWatts: 8_500_000n,
+  // Seed slightly below oracle/fixture so the first agent cycle shows Scene 3 update_telemetry.
+  powerWatts: 8_000_000n,
   hashrate: 420_000_000_000_000n,
   dividendThreshold: 30_000_000_000n,
   buyoutThreshold: 100_000_000n,

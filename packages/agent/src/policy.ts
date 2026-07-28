@@ -68,6 +68,14 @@ export function evaluatePolicy(input: PolicyInput): AgentAction {
     };
   }
 
+  // After Scene 12 convergence, stop draining treasury in demo/settled mode.
+  if (state.agencyStage >= 4) {
+    return {
+      action: "noop",
+      reason: `Hold: stage=${AGENCY_STAGE_LABELS[state.agencyStage] ?? state.agencyStage}, treasury=${state.treasuryMist}`,
+    };
+  }
+
   if (state.ksnScore <= state.dividendThreshold && state.treasuryMist >= dividendAmountMist) {
     return {
       action: "dividend",
@@ -99,7 +107,10 @@ export function filterAllowedAction(
   ) {
     allowed.add("buyout");
   }
-  if (input.state.treasuryMist >= (proposed.dividendAmountMist ?? input.dividendAmountMist)) {
+  if (
+    input.state.ksnScore <= input.state.dividendThreshold &&
+    input.state.treasuryMist >= (proposed.dividendAmountMist ?? input.dividendAmountMist)
+  ) {
     allowed.add("dividend");
   }
   if (input.state.dividendPoolMist > 0) {

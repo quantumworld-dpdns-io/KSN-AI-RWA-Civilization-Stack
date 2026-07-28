@@ -228,6 +228,7 @@ public fun issue_agent_cap(
     agent_cap::transfer_to(cap, agent_address);
 }
 
+#[allow(lint(self_transfer))]
 public fun claim_dividend(
     microgrid: &mut Microgrid,
     credential: &DividendCredential,

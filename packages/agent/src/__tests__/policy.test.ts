@@ -50,4 +50,58 @@ describe("evaluatePolicy", () => {
 
     expect(action.action).toBe("buyout");
   });
+
+  it("distributes dividend when KSN score meets threshold", () => {
+    const action = evaluatePolicy({
+      state: {
+        ...baseState,
+        agencyStage: 3,
+        treasuryMist: 50_000_000,
+        ksnScore: 20_000_000,
+        dividendThreshold: 50_000_000,
+      },
+      telemetry: { powerWatts: baseState.powerWatts, hashrate: baseState.hashrate },
+      dividendAmountMist: 10_000_000,
+      depositAmountMist: 150_000_000,
+      allowBuyout: true,
+    });
+
+    expect(action.action).toBe("dividend");
+  });
+
+  it("claims dividend when pool has balance", () => {
+    const action = evaluatePolicy({
+      state: {
+        ...baseState,
+        agencyStage: 4,
+        treasuryMist: 40_000_000,
+        dividendPoolMist: 10_000_000,
+      },
+      telemetry: { powerWatts: baseState.powerWatts, hashrate: baseState.hashrate },
+      dividendAmountMist: 10_000_000,
+      depositAmountMist: 150_000_000,
+      allowBuyout: true,
+    });
+
+    expect(action.action).toBe("claim");
+  });
+
+  it("settles as noop after Kardashev convergence with empty pool", () => {
+    const action = evaluatePolicy({
+      state: {
+        ...baseState,
+        agencyStage: 4,
+        treasuryMist: 40_000_000,
+        dividendPoolMist: 0,
+        ksnScore: 20_000_000,
+        dividendThreshold: 50_000_000,
+      },
+      telemetry: { powerWatts: baseState.powerWatts, hashrate: baseState.hashrate },
+      dividendAmountMist: 10_000_000,
+      depositAmountMist: 150_000_000,
+      allowBuyout: true,
+    });
+
+    expect(action.action).toBe("noop");
+  });
 });
