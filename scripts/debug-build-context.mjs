@@ -8,8 +8,13 @@ const rootTsconfig = JSON.parse(readFileSync(new URL("../tsconfig.base.json", im
 const webTsconfig = JSON.parse(readFileSync(new URL("../apps/web/tsconfig.json", import.meta.url), "utf8"));
 const lockfile = readFileSync(new URL("../pnpm-lock.yaml", import.meta.url), "utf8");
 const repoRoot = path.resolve(new URL("..", import.meta.url).pathname);
+const webBaseUrl = webTsconfig.compilerOptions?.baseUrl ?? rootTsconfig.compilerOptions?.baseUrl ?? null;
 const webAlias = webTsconfig.compilerOptions?.paths?.["@/*"]?.[0] ?? null;
 const webAliasResolved = webAlias ? path.resolve(path.join(repoRoot, "apps/web"), webAlias.replace("/*", "")) : null;
+const webCoreAlias = webTsconfig.compilerOptions?.paths?.["@aks/core"]?.[0] ?? null;
+const webCoreAliasResolved = webCoreAlias
+  ? path.resolve(path.join(repoRoot, "apps/web"), webCoreAlias)
+  : null;
 
 const payload = {
   sessionId: "52a969",
@@ -27,9 +32,13 @@ const payload = {
     mobileDevDependencyKeys: Object.keys(mobilePackageJson.devDependencies ?? {}),
     rootLib: rootTsconfig.compilerOptions?.lib ?? null,
     coreTypes: coreTsconfig.compilerOptions?.types ?? null,
+    webBaseUrl,
     webAlias,
     webAliasResolved,
     webAliasResolvedExists: webAliasResolved ? existsSync(webAliasResolved) : null,
+    webCoreAlias,
+    webCoreAliasResolved,
+    webCoreAliasResolvedExists: webCoreAliasResolved ? existsSync(webCoreAliasResolved) : null,
   },
   timestamp: Date.now(),
 };
