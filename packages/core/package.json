@@ -12,10 +12,9 @@
     "lint": "tsc --noEmit -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
-  "dependencies": {},
   "devDependencies": {
     "tsx": "^4.20.5",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   },
   "engines": {
