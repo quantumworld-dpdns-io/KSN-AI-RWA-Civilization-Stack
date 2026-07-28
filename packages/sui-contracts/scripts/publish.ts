@@ -5,12 +5,16 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = join(__dirname, "..");
-const outputPath = join(packageRoot, "deployments", "localnet.json");
+
+function deploymentFileName(activeEnv: string): string {
+  return activeEnv === "local" ? "localnet.json" : `${activeEnv}.json`;
+}
 
 function main(): void {
   execSync("sui move build --build-env testnet", { cwd: packageRoot, stdio: "inherit" });
 
   const activeEnv = execSync("sui client active-env", { encoding: "utf8" }).trim();
+  const outputPath = join(packageRoot, "deployments", deploymentFileName(activeEnv));
   const ephemeralPub = join(packageRoot, "Pub.local.toml");
   if (activeEnv === "local" && existsSync(ephemeralPub)) {
     unlinkSync(ephemeralPub);
@@ -42,7 +46,7 @@ function main(): void {
     outputPath,
     JSON.stringify(
       {
-        network: process.env.SUI_NETWORK ?? "local",
+        network: process.env.SUI_NETWORK ?? activeEnv,
         packageId,
         adminCap,
         publishedAt: new Date().toISOString(),

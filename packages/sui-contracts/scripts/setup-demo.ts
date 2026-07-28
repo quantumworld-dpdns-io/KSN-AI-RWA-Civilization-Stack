@@ -18,8 +18,13 @@ const TAIPEI_FIXTURE = {
   buyoutThreshold: 100_000_000n,
 };
 
+function activeEnv(): string {
+  return process.env.SUI_NETWORK ?? process.env.SUI_ENV ?? "local";
+}
+
 function loadDeployment(): { packageId: string; adminCap?: string } {
-  const path = join(packageRoot, "deployments", "localnet.json");
+  const fileName = activeEnv() === "local" ? "localnet.json" : `${activeEnv()}.json`;
+  const path = join(packageRoot, "deployments", fileName);
   return JSON.parse(readFileSync(path, "utf8")) as { packageId: string; adminCap?: string };
 }
 
@@ -108,6 +113,7 @@ async function main(): Promise<void> {
   }
 
   const demoState = {
+    network: activeEnv(),
     packageId: deployment.packageId,
     adminCap: deployment.adminCap,
     microgridId,
@@ -119,11 +125,22 @@ async function main(): Promise<void> {
   };
 
   const outPath = join(packageRoot, "deployments", "demo-state.json");
+  const scopedOutPath = join(
+    packageRoot,
+    "deployments",
+    activeEnv() === "local" ? "demo-state.localnet.json" : `demo-state.${activeEnv()}.json`,
+  );
+  const serialized = JSON.stringify(
+    demoState,
+    (_, value) => (typeof value === "bigint" ? value.toString() : value),
+    2,
+  );
   writeFileSync(
     outPath,
-    JSON.stringify(demoState, (_, value) => (typeof value === "bigint" ? value.toString() : value), 2),
+    serialized,
   );
-  console.log(JSON.stringify(demoState, (_, value) => (typeof value === "bigint" ? value.toString() : value), 2));
+  writeFileSync(scopedOutPath, serialized);
+  console.log(serialized);
 }
 
 main().catch((error) => {
