@@ -61,16 +61,40 @@ echo "==> Running agent demo sequence (Scene 3→6→10→12 until settle)"
 pnpm --filter @aks/agent start:demo
 
 echo "==> Verifying on-chain microgrid state"
-MICROGRID_ID="$(node -pe "JSON.parse(require('fs').readFileSync('packages/sui-contracts/deployments/demo-state.json','utf8')).microgridId")"
-sui client object "$MICROGRID_ID" --json | node -e "
-const input = JSON.parse(require('fs').readFileSync(0,'utf8'));
-const fields = input.data?.content?.fields?.fields ?? input.data?.content?.fields ?? {};
-console.log(JSON.stringify({
-  agency_stage: fields.agency_stage,
-  ksn_score: fields.ksn_score,
-  treasury_balance: fields.treasury_balance?.fields?.value ?? fields.treasury_balance,
-  dividend_pool: fields.dividend_pool?.fields?.value ?? fields.dividend_pool,
-}, null, 2));
-"
+node --input-type=module <<'EOF'
+import { readFileSync } from "node:fs";
+import { SuiClient } from "@mysten/sui/client";
+
+const demo = JSON.parse(
+  readFileSync("packages/sui-contracts/deployments/demo-state.json", "utf8"),
+);
+const client = new SuiClient({ url: process.env.SUI_RPC_URL ?? "http://127.0.0.1:9000" });
+const object = await client.getObject({
+  id: demo.microgridId,
+  options: { showContent: true },
+});
+
+if (object.data?.content?.dataType !== "moveObject") {
+  throw new Error(`Microgrid missing: ${JSON.stringify(object)}`);
+}
+
+const fields = object.data.content.fields;
+const nested = (fields?.fields ?? fields) ?? {};
+const balanceValue = (field) =>
+  field?.fields?.value ?? field?.value ?? field ?? "0";
+
+console.log(
+  JSON.stringify(
+    {
+      agency_stage: nested.agency_stage,
+      ksn_score: nested.ksn_score,
+      treasury_balance: balanceValue(nested.treasury_balance),
+      dividend_pool: balanceValue(nested.dividend_pool),
+    },
+    null,
+    2,
+  ),
+);
+EOF
 
 echo "==> Demo complete. See packages/sui-contracts/deployments/demo-state.json"

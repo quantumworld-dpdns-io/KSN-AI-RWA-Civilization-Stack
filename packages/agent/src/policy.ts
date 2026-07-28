@@ -68,6 +68,14 @@ export function evaluatePolicy(input: PolicyInput): AgentAction {
     };
   }
 
+  // After Scene 12 convergence, stop draining treasury in demo/settled mode.
+  if (state.agencyStage >= 4) {
+    return {
+      action: "noop",
+      reason: `Hold: stage=${AGENCY_STAGE_LABELS[state.agencyStage] ?? state.agencyStage}, treasury=${state.treasuryMist}`,
+    };
+  }
+
   if (state.ksnScore <= state.dividendThreshold && state.treasuryMist >= dividendAmountMist) {
     return {
       action: "dividend",
