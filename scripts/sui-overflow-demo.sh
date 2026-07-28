@@ -57,8 +57,8 @@ pnpm --filter @aks/sui-contracts exec tsx scripts/publish.ts
 echo "==> Seeding microgrid, AgentCap, credential"
 pnpm --filter @aks/sui-contracts exec tsx scripts/setup-demo.ts
 
-echo "==> Running one agent cycle (Scene 3→6→10→12 policy loop)"
-pnpm --filter @aks/agent start:once
+echo "==> Running agent demo sequence (Scene 3→6→10→12 until settle)"
+pnpm --filter @aks/agent start:demo
 
 echo "==> Verifying on-chain microgrid state"
 MICROGRID_ID="$(node -pe "JSON.parse(require('fs').readFileSync('packages/sui-contracts/deployments/demo-state.json','utf8')).microgridId")"

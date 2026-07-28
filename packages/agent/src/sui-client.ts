@@ -1,10 +1,11 @@
 import { SuiClient } from "@mysten/sui/client";
+import type { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 import { loadActiveKeypair } from "./keypair.js";
 import type { AgentAction, AgentConfig, MicrogridState } from "./types.js";
 import { truncateAddress } from "./config.js";
 
-function getKeypair(privateKeyHex?: string) {
+function getKeypair(privateKeyHex?: string): Ed25519Keypair {
   return loadActiveKeypair(privateKeyHex);
 }
 
@@ -158,7 +159,15 @@ export class SuiMicrogridClient {
       options: { showEffects: true },
     });
 
+    if (result.effects?.status?.status !== "success") {
+      throw new Error(`Transaction failed: ${JSON.stringify(result.effects?.status)}`);
+    }
+
     return result.digest;
+  }
+
+  async waitForDigest(digest: string): Promise<void> {
+    await this.client.waitForTransaction({ digest });
   }
 
   logSafe(message: string): void {

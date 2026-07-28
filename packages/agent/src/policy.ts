@@ -99,7 +99,10 @@ export function filterAllowedAction(
   ) {
     allowed.add("buyout");
   }
-  if (input.state.treasuryMist >= (proposed.dividendAmountMist ?? input.dividendAmountMist)) {
+  if (
+    input.state.ksnScore <= input.state.dividendThreshold &&
+    input.state.treasuryMist >= (proposed.dividendAmountMist ?? input.dividendAmountMist)
+  ) {
     allowed.add("dividend");
   }
   if (input.state.dividendPoolMist > 0) {
