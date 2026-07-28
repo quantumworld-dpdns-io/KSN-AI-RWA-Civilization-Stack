@@ -15,7 +15,7 @@
     "ignoreDeprecations": "6.0",
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["apps/web/src/*"],
+      "@/*": ["src/*"],
       "@aks/core": ["packages/core/src/index.ts"],
       "@aks/oracle-sim": ["packages/oracle-sim/src/index.ts"],
       "@aks/shared": ["packages/shared/src/index.ts"],
