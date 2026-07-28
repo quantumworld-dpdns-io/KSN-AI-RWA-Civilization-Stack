@@ -4,6 +4,7 @@
     "rootDir": "scripts",
     "outDir": "dist",
     "noEmit": true,
+    "ignoreDeprecations": "6.0",
     "moduleResolution": "bundler"
   },
   "include": ["scripts"]
