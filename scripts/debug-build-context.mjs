@@ -1,15 +1,20 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const mobilePackageJson = JSON.parse(readFileSync(new URL("../mobile/package.json", import.meta.url), "utf8"));
 const coreTsconfig = JSON.parse(readFileSync(new URL("../packages/core/tsconfig.json", import.meta.url), "utf8"));
 const rootTsconfig = JSON.parse(readFileSync(new URL("../tsconfig.base.json", import.meta.url), "utf8"));
+const webTsconfig = JSON.parse(readFileSync(new URL("../apps/web/tsconfig.json", import.meta.url), "utf8"));
 const lockfile = readFileSync(new URL("../pnpm-lock.yaml", import.meta.url), "utf8");
+const repoRoot = path.resolve(new URL("..", import.meta.url).pathname);
+const webAlias = webTsconfig.compilerOptions?.paths?.["@/*"]?.[0] ?? null;
+const webAliasResolved = webAlias ? path.resolve(path.join(repoRoot, "apps/web"), webAlias.replace("/*", "")) : null;
 
 const payload = {
   sessionId: "52a969",
   runId: "pre-fix",
-  hypothesisId: "H1|H2|H3|H4",
+  hypothesisId: "H1|H2|H3|H4|H5",
   location: "scripts/debug-build-context.mjs:1",
   message: "build context snapshot",
   data: {
@@ -22,6 +27,9 @@ const payload = {
     mobileDevDependencyKeys: Object.keys(mobilePackageJson.devDependencies ?? {}),
     rootLib: rootTsconfig.compilerOptions?.lib ?? null,
     coreTypes: coreTsconfig.compilerOptions?.types ?? null,
+    webAlias,
+    webAliasResolved,
+    webAliasResolvedExists: webAliasResolved ? existsSync(webAliasResolved) : null,
   },
   timestamp: Date.now(),
 };
