@@ -84,6 +84,7 @@ pnpm --filter @aks/agent start        # continuous polling
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SUI_RPC_URL` | `http://127.0.0.1:9000` | Sui JSON-RPC endpoint |
+| `SUI_TX_BACKEND` | `auto` | Transaction path: `auto`, `sdk`, or `cli` |
 | `SUI_PACKAGE_ID` | from `demo-state.json` | Published package ID |
 | `SUI_MICROGRID_ID` | from `demo-state.json` | Shared microgrid object |
 | `SUI_AGENT_CAP_ID` | from `demo-state.json` | Agent capability object |
@@ -93,6 +94,8 @@ pnpm --filter @aks/agent start        # continuous polling
 | `AGENT_ALLOW_BUYOUT` | `true` | Hard guardrail for Scene 10 |
 
 Without `OPENAI_API_KEY` / `OLLAMA_BASE_URL`, the agent uses **deterministic policy** in [`packages/agent/src/policy.ts`](../packages/agent/src/policy.ts).
+
+For Sui testnet, set `SUI_TX_BACKEND=cli` if the RPC endpoint still rejects SDK metadata lookups such as `sui_getNormalizedMoveFunction`.
 
 ## Agentic Web alignment
 

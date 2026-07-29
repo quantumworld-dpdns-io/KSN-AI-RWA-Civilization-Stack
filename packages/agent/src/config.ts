@@ -41,6 +41,10 @@ export function loadAgentConfig(): AgentConfig {
 
   return {
     suiRpcUrl: process.env.SUI_RPC_URL ?? "http://127.0.0.1:9000",
+    suiTxBackend:
+      process.env.SUI_TX_BACKEND === "sdk" || process.env.SUI_TX_BACKEND === "cli"
+        ? process.env.SUI_TX_BACKEND
+        : "auto",
     packageId,
     microgridId,
     agentCapId,

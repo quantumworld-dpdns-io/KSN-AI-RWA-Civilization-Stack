@@ -31,6 +31,7 @@ export interface DemoDeployment {
 
 export interface AgentConfig {
   suiRpcUrl: string;
+  suiTxBackend: "auto" | "sdk" | "cli";
   packageId: string;
   microgridId: string;
   agentCapId: string;
