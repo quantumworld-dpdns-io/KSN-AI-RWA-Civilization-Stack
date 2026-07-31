@@ -1,0 +1,9 @@
+{
+  "network": "testnet",
+  "graphqlUrl": "https://graphql.testnet.sui.io/graphql",
+  "packageId": "0xd5f424c86c4da9b3480f8450574e8fad5fc7c372d92c14e9c65dbfde889d2557",
+  "microgridId": "0xe7b809c14e1cb43efa3a53634c6b9451889fe6155a4c5b10bd1a5f97c342af6e",
+  "assetId": "type-07-taipei-microgrid-gpu",
+  "publishedAt": "2026-07-28T09:33:30.333Z",
+  "explorer": "https://suiscan.xyz/testnet"
+}

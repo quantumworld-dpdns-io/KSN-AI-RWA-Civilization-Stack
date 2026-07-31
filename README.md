@@ -180,6 +180,24 @@ Solidity skeletons for:
 
 The prototype suite is configured for Ethereum Sepolia publication. See [`packages/contracts/README.md`](packages/contracts/README.md) for the guarded deployment flow. Once deployed, addresses and Etherscan links are displayed by the dashboard’s **Sepolia contracts** view.
 
+### `packages/sui-contracts` — live on Sui testnet
+
+The Move microgrid (`ksn_microgrid`) is published to Sui **testnet** and the dashboard’s
+**Sui microgrid** view reads it live. The read path is production-ready:
+
+- Reads run **server-side** through `GET /api/chain/sui` (never exposing the RPC to the browser).
+- Because public Sui fullnodes deprecated JSON-RPC, reads use the **GraphQL** endpoint
+  (`https://graphql.testnet.sui.io/graphql`).
+- The published object ids are committed in
+  [`apps/web/src/generated/sui.testnet.json`](apps/web/src/generated/sui.testnet.json)
+  (public on-chain data), so the view renders live data with **no environment configuration**.
+- Overrides: `SUI_GRAPHQL_URL` and `SUI_MICROGRID_ID`. Regenerate the committed config after
+  republishing with `pnpm sui:web-config`.
+
+The prior `NEXT_PUBLIC_SUI_RPC_URL` / `NEXT_PUBLIC_SUI_MICROGRID_ID` manual step is no longer
+required. The panel surfaces agency stage, KSN score P/H, treasury, dividend pool/round, the
+kill-switch (`paused`) state, and a Suiscan link to the object.
+
 ---
 
 ## Conceptual stack
