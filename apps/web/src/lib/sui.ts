@@ -14,7 +14,11 @@ function graphqlUrl(): string {
 
 // The published testnet microgrid object. Overridable via env.
 function microgridId(): string {
-  return process.env.SUI_MICROGRID_ID ?? process.env.NEXT_PUBLIC_SUI_MICROGRID_ID ?? deployment.microgridId;
+  return (
+    process.env.SUI_MICROGRID_ID ??
+    process.env.NEXT_PUBLIC_SUI_MICROGRID_ID ??
+    deployment.microgridId
+  );
 }
 
 const AGENCY_LABELS: Record<number, string> = {
@@ -72,7 +76,9 @@ export async function readSuiMicrogridState(): Promise<SuiMicrogridState> {
   const url = graphqlUrl();
   const id = microgridId();
   if (!id) {
-    throw new Error("No Sui microgrid object configured (set SUI_MICROGRID_ID or the committed deployment).");
+    throw new Error(
+      "No Sui microgrid object configured (set SUI_MICROGRID_ID or the committed deployment)."
+    );
   }
 
   const response = await fetch(url, {

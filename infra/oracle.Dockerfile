@@ -22,7 +22,12 @@ COPY --from=builder /app/packages/core/dist ./packages/core/dist
 COPY --from=builder /app/packages/oracle-sim/dist ./packages/oracle-sim/dist
 
 ENV CI=true NODE_ENV=production
-RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts
+# Install prod deps, then remove the corepack-managed pnpm store. That store
+# bundles a vulnerable tar (CVE-2026-59873) and is unneeded at runtime (the
+# CMD only runs `node`), so removing it clears the Trivy critical.
+RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts \
+    && corepack disable >/dev/null 2>&1 || true \
+    && rm -rf /root/.local/share/pnpm /root/.cache /root/.npm /usr/local/bin/pnpm /usr/local/bin/pnpx
 
 RUN addgroup -g 10014 -S app \
     && adduser -S -u 10014 -G app app \

@@ -1,7 +1,6 @@
-/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
@@ -43,11 +42,7 @@ export function Dashboard({
   const [actionError, setActionError] = useState("");
   const selected = telemetry.find((item) => item.asset.id === selectedId) ?? telemetry[0];
 
-  useEffect(() => {
-    if (view === "oracle" && selectedId) void loadHistory(selectedId);
-  }, [view, selectedId]);
-
-  async function loadHistory(assetId: string) {
+  const loadHistory = useCallback(async (assetId: string) => {
     setHistoryLoading(true);
     try {
       const response = await fetch(
@@ -64,7 +59,11 @@ export function Dashboard({
     } finally {
       setHistoryLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (view === "oracle" && selectedId) void loadHistory(selectedId);
+  }, [view, selectedId, loadHistory]);
 
   async function refresh() {
     setRefreshing(true);
@@ -165,8 +164,7 @@ export function Dashboard({
             <p className="eyebrow">Autonomous infrastructure intelligence</p>
             <h1>{titles[view]}</h1>
           </div>
-          {/** biome-ignore lint/a11y/useButtonType: <explanation> */}
-          <button className="refresh" onClick={refresh} disabled={refreshing}>
+          <button type="button" className="refresh" onClick={refresh} disabled={refreshing}>
             <span className={refreshing ? "spin" : ""}>↻</span>
             {refreshing ? "Syncing" : "Sync oracle"}
           </button>
@@ -548,7 +546,7 @@ function OracleHealth({
               </select>
             }
           />
-          <button className="secondary" onClick={forceRefresh}>
+          <button type="button" className="secondary" onClick={forceRefresh}>
             Force signed refresh
           </button>
           {error && <p className="error">{error}</p>}
@@ -612,7 +610,7 @@ function Simulator() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const estimate = useMemo(() => (Math.log10(form.powerWatts) - 6) / 10, [form.powerWatts]);
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -664,7 +662,7 @@ function Simulator() {
             onChange={(e) => setForm({ ...form, utilization: Number(e.target.value) })}
           />
         </label>
-        <button className="primary" disabled={loading}>
+        <button type="submit" className="primary" disabled={loading}>
           {loading ? "Running model…" : "Run oracle simulation"}
         </button>
         {error && <p className="error">{error}</p>}
@@ -864,7 +862,7 @@ function LiveChainState() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -877,11 +875,11 @@ function LiveChainState() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   return (
     <section className="panel">
@@ -889,7 +887,7 @@ function LiveChainState() {
         kicker="Live on-chain reads (viem)"
         title="Sepolia contract state"
         aside={
-          <button className="secondary" onClick={load} disabled={loading}>
+          <button type="button" className="secondary" onClick={load} disabled={loading}>
             {loading ? "Reading…" : "Re-read chain"}
           </button>
         }
@@ -1108,7 +1106,7 @@ function NavButton({
   children: React.ReactNode;
 }) {
   return (
-    <button className={active ? "active" : ""} onClick={onClick}>
+    <button type="button" className={active ? "active" : ""} onClick={onClick}>
       <span>{icon}</span>
       {children}
     </button>

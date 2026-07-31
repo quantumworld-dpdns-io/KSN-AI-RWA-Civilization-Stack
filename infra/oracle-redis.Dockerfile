@@ -34,7 +34,12 @@ COPY --from=builder /app/packages/oracle-sim/dist ./packages/oracle-sim/dist
 
 # Install runtime deps only (excludes vitest, esbuild, protobufjs, etc.)
 ENV CI=true NODE_ENV=production
-RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts
+# After installing, remove the global pnpm (its bundled tar is flagged by
+# scanners and is not needed at runtime — the CMD only runs `node`).
+RUN pnpm install --prod --filter @aks/oracle-sim --frozen-lockfile=false --ignore-scripts \
+    && npm uninstall -g pnpm >/dev/null 2>&1 || true \
+    && npm cache clean --force >/dev/null 2>&1 || true \
+    && rm -rf /root/.local/share/pnpm /root/.cache /root/.npm
 
 # ---- Create non-root user for Choreo security compliance ----
 # CKV_DOCKER_3: non-root user required

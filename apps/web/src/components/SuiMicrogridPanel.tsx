@@ -24,7 +24,10 @@ interface SuiMicrogridState {
 }
 
 function humanize(value: string) {
-  return value.toLowerCase().replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function Value({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
@@ -101,7 +104,11 @@ export function SuiMicrogridPanel() {
               <strong>Live on Sui {state.network}</strong>
               <small>
                 Object{" "}
-                <a href={`${state.explorer}/object/${state.microgridId}`} target="_blank" rel="noreferrer">
+                <a
+                  href={`${state.explorer}/object/${state.microgridId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {state.microgridId.slice(0, 10)}…{state.microgridId.slice(-6)}
                 </a>{" "}
                 · read via GraphQL · {new Date(state.fetchedAt).toLocaleTimeString()}
@@ -111,7 +118,13 @@ export function SuiMicrogridPanel() {
         </>
       )}
 
-      <button type="button" className="refresh" onClick={() => void load()} disabled={loading} style={{ marginTop: 14 }}>
+      <button
+        type="button"
+        className="refresh"
+        onClick={() => void load()}
+        disabled={loading}
+        style={{ marginTop: 14 }}
+      >
         <span className={loading ? "spin" : ""}>↻</span>
         {loading ? "Reading" : "Refresh on-chain"}
       </button>

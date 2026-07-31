@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { WalletAccount } from "@mysten/wallet-standard";
+import { useEffect, useState } from "react";
 import deployment from "@/generated/sui.testnet.json";
 import {
   connectSuiWallet,
+  type SuiWalletInfo,
   stakeToMicrogrid,
   subscribeSuiWallets,
-  type SuiWalletInfo,
 } from "@/lib/sui-wallet";
 
 const MIST_PER_SUI = 1_000_000_000;
@@ -18,7 +18,11 @@ function shorten(addr: string) {
 
 export function SuiWalletStake() {
   const [wallets, setWallets] = useState<SuiWalletInfo[]>([]);
-  const [connected, setConnected] = useState<{ name: string; account: WalletAccount; wallet: SuiWalletInfo["wallet"] } | null>(null);
+  const [connected, setConnected] = useState<{
+    name: string;
+    account: WalletAccount;
+    wallet: SuiWalletInfo["wallet"];
+  } | null>(null);
   const [amountSui, setAmountSui] = useState("0.01");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
@@ -58,7 +62,10 @@ export function SuiWalletStake() {
         amountMist,
         network: deployment.network as "testnet",
       });
-      setStatus({ kind: "ok", msg: `Staked ${sui} SUI — received a StakeReceipt token. Tx ${digest.slice(0, 10)}…` });
+      setStatus({
+        kind: "ok",
+        msg: `Staked ${sui} SUI — received a StakeReceipt token. Tx ${digest.slice(0, 10)}…`,
+      });
     } catch (e) {
       setStatus({ kind: "err", msg: e instanceof Error ? e.message : "Stake failed." });
     } finally {
@@ -85,13 +92,30 @@ export function SuiWalletStake() {
         wallets.length === 0 ? (
           <p className="policy-description">
             No Sui wallet detected. Install{" "}
-            <a href="https://slush.app" target="_blank" rel="noreferrer">Slush</a> and reload.
+            <a href="https://slush.app" target="_blank" rel="noreferrer">
+              Slush
+            </a>{" "}
+            and reload.
           </p>
         ) : (
           <div className="wallet-actions">
             {wallets.map((w) => (
-              <button key={w.name} type="button" className="secondary" onClick={() => void connect(w)}>
-                {w.icon ? <img src={w.icon} alt="" width={16} height={16} style={{ verticalAlign: "middle", marginRight: 6 }} /> : null}
+              <button
+                key={w.name}
+                type="button"
+                className="secondary"
+                onClick={() => void connect(w)}
+              >
+                {w.icon ? (
+                  // biome-ignore lint/performance/noImgElement: wallet-provided data-URI icon; next/image can't optimize it
+                  <img
+                    src={w.icon}
+                    alt=""
+                    width={16}
+                    height={16}
+                    style={{ verticalAlign: "middle", marginRight: 6 }}
+                  />
+                ) : null}
                 {w.name}
               </button>
             ))}
@@ -117,7 +141,14 @@ export function SuiWalletStake() {
               value={amountSui}
               onChange={(e) => setAmountSui(e.target.value)}
               aria-label="Amount in SUI"
-              style={{ width: 120, padding: 9, borderRadius: 8, border: "1px solid #2a303b", background: "#12161d", color: "inherit" }}
+              style={{
+                width: 120,
+                padding: 9,
+                borderRadius: 8,
+                border: "1px solid #2a303b",
+                background: "#12161d",
+                color: "inherit",
+              }}
             />
             <button type="button" className="refresh" onClick={() => void stake()} disabled={busy}>
               {busy ? "Staking…" : "Stake SUI"}
@@ -127,7 +158,10 @@ export function SuiWalletStake() {
       )}
 
       {status ? (
-        <p className="policy-description" style={{ color: status.kind === "ok" ? "var(--cyan)" : "#e2726e" }}>
+        <p
+          className="policy-description"
+          style={{ color: status.kind === "ok" ? "var(--cyan)" : "#e2726e" }}
+        >
           {status.msg}
         </p>
       ) : null}
