@@ -55,6 +55,12 @@ export interface StakeParams {
   packageId: string;
   microgridId: string;
   amountMist: bigint;
+  /**
+   * The microgrid's initialSharedVersion. When provided we pass an explicit
+   * shared-object reference so the wallet never has to resolve it over the
+   * (now-deprecated) public JSON-RPC — a common cause of execute failures.
+   */
+  microgridInitialSharedVersion?: number | string;
   network?: "testnet" | "mainnet" | "devnet";
 }
 

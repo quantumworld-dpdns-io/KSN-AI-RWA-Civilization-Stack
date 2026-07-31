@@ -28,3 +28,4 @@ packages/sui-contracts/Pub.local.toml
 .env.docker
 infra/.env.docker
 /mobile/node_modules
+/apps/web/src/generated
