@@ -59,6 +59,7 @@ export function SuiWalletStake() {
         account: connected.account,
         packageId: deployment.packageId,
         microgridId: deployment.microgridId,
+        microgridInitialSharedVersion: deployment.microgridInitialSharedVersion,
         amountMist,
         network: deployment.network as "testnet",
       });

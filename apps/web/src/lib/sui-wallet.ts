@@ -75,7 +75,15 @@ export interface StakeParams {
  * `signAndExecuteTransactionBlock` feature.
  */
 export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
-  const { wallet, account, packageId, microgridId, amountMist, network = "testnet" } = params;
+  const {
+    wallet,
+    account,
+    packageId,
+    microgridId,
+    amountMist,
+    microgridInitialSharedVersion,
+    network = "testnet",
+  } = params;
   const targetChain = `sui:${network}` as const;
 
   // Guard the network mismatch up front with a clear, actionable message.
@@ -89,9 +97,20 @@ export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
   const tx = new Transaction();
   tx.setSenderIfNotSet(account.address);
   const [coin] = tx.splitCoins(tx.gas, [amountMist]);
+  // Explicit shared-object ref when we know the initial version; else fall back
+  // to tx.object() (which requires the wallet to resolve the object itself over
+  // the deprecated JSON-RPC — a common execute failure).
+  const microgridArg =
+    microgridInitialSharedVersion != null
+      ? tx.sharedObjectRef({
+          objectId: microgridId,
+          initialSharedVersion: Number(microgridInitialSharedVersion),
+          mutable: true,
+        })
+      : tx.object(microgridId);
   tx.moveCall({
     target: `${packageId}::microgrid::stake`,
-    arguments: [tx.object(microgridId), coin],
+    arguments: [microgridArg, coin],
   });
 
   // Preferred: the current Wallet Standard feature.
