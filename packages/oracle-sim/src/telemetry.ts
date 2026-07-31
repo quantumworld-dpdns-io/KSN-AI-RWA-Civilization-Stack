@@ -148,8 +148,20 @@ export function isProductionSigningConfigured(): boolean {
   return Boolean(process.env.ORACLE_SIGNING_SECRET);
 }
 
+const DEV_SIGNING_KEY = "aks-local-development-signing-key";
+
 function signingSecret(): string {
-  return process.env.ORACLE_SIGNING_SECRET ?? "aks-local-development-signing-key";
+  const secret = process.env.ORACLE_SIGNING_SECRET;
+  if (secret && secret.length > 0) return secret;
+  // Fail closed: the well-known development key is a public constant, so signing
+  // or verifying with it lets anyone forge telemetry. Only tolerate it inside
+  // the test runner; every other environment must supply a real secret.
+  if (process.env.NODE_ENV === "test" || process.env.VITEST) {
+    return DEV_SIGNING_KEY;
+  }
+  throw new Error(
+    "ORACLE_SIGNING_SECRET is required: refusing to sign/verify telemetry with the public development key.",
+  );
 }
 
 function deterministicJitter(input: string): number {

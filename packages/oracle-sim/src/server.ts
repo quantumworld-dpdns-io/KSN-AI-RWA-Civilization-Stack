@@ -36,9 +36,28 @@ export interface BuildAppOptions {
   logger?: boolean;
 }
 
+// Routes that mutate persisted state and therefore require an API key.
+const PROTECTED_ROUTES = new Set(["/telemetry/:assetId/refresh"]);
+
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: options.logger ?? true });
   const store = options.store ?? createTelemetryStore();
+
+  // Require an API key on state-mutating routes. When ORACLE_API_KEY is
+  // configured, protected routes must present a matching x-api-key header;
+  // otherwise those routes are disabled. Read + pure-compute routes stay open
+  // (protect them from abuse via rate limiting instead).
+  const apiKey = process.env.ORACLE_API_KEY ?? process.env.API_KEY;
+  app.addHook("onRequest", async (request, reply) => {
+    const routeUrl = request.routeOptions?.url;
+    if (!routeUrl || !PROTECTED_ROUTES.has(routeUrl)) return;
+    if (!apiKey) {
+      return reply.code(503).send({ error: "write_disabled", detail: "ORACLE_API_KEY not configured" });
+    }
+    if (request.headers["x-api-key"] !== apiKey) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+  });
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -161,11 +180,23 @@ function createTelemetryStore(): TelemetryStore {
   return process.env.ORACLE_STORE === "memory" ? new MemoryTelemetryStore() : new RedisTelemetryStore();
 }
 
+function telemetryFreshnessMs(): number {
+  const seconds = Number(process.env.TELEMETRY_CACHE_TTL_SECONDS ?? "300");
+  return (Number.isFinite(seconds) && seconds > 0 ? seconds : 300) * 1000;
+}
+
+function isFresh(telemetry: AssetTelemetry): boolean {
+  const ageMs = Date.now() - Date.parse(telemetry.timestamp);
+  return Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= telemetryFreshnessMs();
+}
+
 async function resolveSnapshot(store: TelemetryStore, generated: AssetTelemetry, force: boolean): Promise<AssetTelemetry> {
   if (!force) {
     try {
       const cached = await store.current(generated.asset.id);
-      if (cached && verifyTelemetrySignature(cached)) return cached;
+      // Reject replay of a stale-but-signed snapshot: a valid signature is not
+      // enough, the timestamp must also be within the freshness window.
+      if (cached && verifyTelemetrySignature(cached) && isFresh(cached)) return cached;
     } catch {
       // Serve signed simulator data when Redis is temporarily unavailable.
     }
@@ -198,8 +229,8 @@ export function validateRuntimeConfiguration(): void {
   if (process.env.NODE_ENV !== "production") return;
   const requiredSecrets =
     process.env.ORACLE_STORE === "memory"
-      ? ["ORACLE_SIGNING_SECRET"]
-      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"];
+      ? ["ORACLE_SIGNING_SECRET", "ORACLE_API_KEY"]
+      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET", "ORACLE_API_KEY"];
   const missing = requiredSecrets.filter((name) => !process.env[name]);
   if (missing.length) throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
   const weak = requiredSecrets.filter((name) => process.env[name]!.length < 16);

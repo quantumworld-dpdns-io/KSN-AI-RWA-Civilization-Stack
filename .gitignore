@@ -25,4 +25,6 @@ packages/contracts/deployments/default.json
 packages/sui-contracts/build/
 packages/sui-contracts/Pub.local.toml
 .env
+.env.docker
+infra/.env.docker
 /mobile/node_modules

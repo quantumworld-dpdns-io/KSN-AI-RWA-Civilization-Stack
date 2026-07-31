@@ -25,6 +25,9 @@ export interface DemoDeployment {
   packageId: string;
   microgridId: string;
   agentCapId: string;
+  adminCapId?: string;
+  // setup-demo.ts writes the admin capability under `adminCap`.
+  adminCap?: string;
   credentialId?: string;
   agentAddress: string;
 }
@@ -35,6 +38,9 @@ export interface AgentConfig {
   packageId: string;
   microgridId: string;
   agentCapId: string;
+  // Human-held AdminCap object id. Required to execute the human-gated
+  // buyout/dividend actions; when absent the agent cannot perform them.
+  adminCapId?: string;
   credentialId?: string;
   privateKeyHex?: string;
   oracleUrl?: string;
@@ -46,6 +52,13 @@ export interface AgentConfig {
   openAiApiKey?: string;
   ollamaBaseUrl?: string;
   llmModel: string;
+  // Reject signed telemetry older than this (replay / staleness guard).
+  telemetryMaxAgeMs: number;
+  // When true, proceed with unverifiable/missing telemetry (dev only). Defaults false: fail closed.
+  allowUnverifiedTelemetry: boolean;
+  // Guardrails for the continuous loop.
+  maxCycles: number;
+  maxSpendMistPerRun: number;
 }
 
 export const AGENCY_STAGE_LABELS: Record<number, string> = {

@@ -3,10 +3,24 @@ import { promisify } from "node:util";
 import { SuiClient } from "@mysten/sui/client";
 import type { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
+import { type AssetTelemetry, verifyTelemetrySignature } from "@aks/oracle-sim";
 import { loadActiveKeypair } from "./keypair.js";
 import type { AgentAction, AgentConfig, MicrogridState } from "./types.js";
 import { truncateAddress } from "./config.js";
 import { buildCliCommand, parseCliDigest, shouldUseCliBackend } from "./sui-cli.js";
+
+/**
+ * Result of an oracle telemetry read. `trusted` is false whenever the payload
+ * could not be verified (bad signature, stale timestamp, network error, or the
+ * oracle is not configured). Callers MUST NOT sign on-chain transactions
+ * against untrusted telemetry unless `allowUnverifiedTelemetry` is set.
+ */
+export interface TelemetryReading {
+  powerWatts: number;
+  hashrate: number;
+  trusted: boolean;
+  reason?: string;
+}
 
 const execFileAsync = promisify(execFile);
 
@@ -46,30 +60,52 @@ export class SuiMicrogridClient {
     return this.keypair.getPublicKey().toSuiAddress();
   }
 
-  async fetchTelemetry(): Promise<{ powerWatts: number; hashrate: number }> {
-    const fallback = { powerWatts: 8_500_000, hashrate: 420_000_000_000_000 };
+  /**
+   * Fetch signed telemetry from the oracle and verify its HMAC signature and
+   * freshness before returning it. Fails closed: any failure yields
+   * `trusted: false` with a reason instead of silently substituting fabricated
+   * fallback constants (which previously let the agent sign transactions
+   * against invented data).
+   */
+  async fetchTelemetry(): Promise<TelemetryReading> {
+    const untrusted = (reason: string): TelemetryReading => ({
+      powerWatts: 0,
+      hashrate: 0,
+      trusted: false,
+      reason,
+    });
+
     if (!this.config.oracleUrl) {
-      return fallback;
+      return untrusted("oracle URL not configured");
     }
 
+    let payload: AssetTelemetry;
     try {
       const response = await fetch(`${this.config.oracleUrl}/telemetry/${this.config.assetId}`);
       if (!response.ok) {
-        return fallback;
+        return untrusted(`oracle responded ${response.status}`);
       }
-
-      const payload = (await response.json()) as {
-        powerWatts?: number;
-        hashrate?: number;
-      };
-
-      return {
-        powerWatts: payload.powerWatts ?? fallback.powerWatts,
-        hashrate: payload.hashrate ?? fallback.hashrate,
-      };
-    } catch {
-      return fallback;
+      payload = (await response.json()) as AssetTelemetry;
+    } catch (error) {
+      return untrusted(`oracle fetch failed: ${(error as Error).message}`);
     }
+
+    if (!verifyTelemetrySignature(payload)) {
+      return untrusted("telemetry signature verification failed");
+    }
+
+    const ageMs = Date.now() - Date.parse(payload.timestamp);
+    if (!Number.isFinite(ageMs) || ageMs > this.config.telemetryMaxAgeMs) {
+      return untrusted(`telemetry stale (age=${ageMs}ms > ${this.config.telemetryMaxAgeMs}ms)`);
+    }
+
+    const powerWatts = payload.asset?.powerWatts;
+    const hashrate = payload.asset?.hashrate;
+    if (typeof powerWatts !== "number" || typeof hashrate !== "number" || hashrate <= 0) {
+      return untrusted("telemetry missing/invalid power or hashrate fields");
+    }
+
+    return { powerWatts, hashrate, trusted: true };
   }
 
   async readMicrogridState(): Promise<MicrogridState> {
@@ -206,22 +242,35 @@ export class SuiMicrogridClient {
         });
         break;
       }
-      case "buyout":
+      case "buyout": {
+        if (!this.config.adminCapId) {
+          throw new Error("execute_buyout requires operator AdminCap (SUI_ADMIN_CAP_ID unset)");
+        }
         tx.moveCall({
           target: `${pkg}::microgrid::execute_buyout`,
-          arguments: [tx.object(this.config.microgridId), tx.object(this.config.agentCapId)],
+          arguments: [
+            tx.object(this.config.microgridId),
+            tx.object(this.config.agentCapId),
+            tx.object(this.config.adminCapId),
+          ],
         });
         break;
-      case "dividend":
+      }
+      case "dividend": {
+        if (!this.config.adminCapId) {
+          throw new Error("distribute_planetary_dividend requires operator AdminCap (SUI_ADMIN_CAP_ID unset)");
+        }
         tx.moveCall({
           target: `${pkg}::microgrid::distribute_planetary_dividend`,
           arguments: [
             tx.object(this.config.microgridId),
             tx.object(this.config.agentCapId),
+            tx.object(this.config.adminCapId),
             tx.pure.u64(BigInt(action.dividendAmountMist ?? this.config.dividendAmountMist)),
           ],
         });
         break;
+      }
       case "claim":
         if (!this.config.credentialId) {
           throw new Error("Missing credential ID for claim action");

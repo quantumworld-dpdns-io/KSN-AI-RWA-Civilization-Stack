@@ -2,3 +2,10 @@ packages:
   - "apps/*"
   - "mobile"
   - "packages/*"
+
+# pnpm 9 reads build-script allowlist here (no longer from package.json).
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - duckdb
+  - "@parcel/watcher"

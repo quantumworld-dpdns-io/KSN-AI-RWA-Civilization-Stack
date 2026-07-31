@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Block secret leaks before they enter history. Requires gitleaks
+# (https://github.com/gitleaks/gitleaks) — install via `brew install gitleaks`.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --config .gitleaks.toml || {
+    echo "✖ gitleaks detected a potential secret in staged changes. Commit aborted."
+    exit 1
+  }
+else
+  echo "⚠ gitleaks not installed — skipping secret scan. Install it: brew install gitleaks"
+fi
+
+# Format/lint only the staged files. This is convenience, not a gate: if node
+# isn't on PATH (e.g. GitHub Desktop's minimal environment), skip it rather than
+# block the commit. The secret scan above is the real gate.
+if ! command -v node >/dev/null 2>&1; then
+  echo "⚠ node not on PATH — skipping staged lint (run 'pnpm check' before pushing)."
+elif [ -x "node_modules/.bin/lint-staged" ]; then
+  node_modules/.bin/lint-staged
+elif command -v npx >/dev/null 2>&1; then
+  npx lint-staged
+else
+  echo "⚠ lint-staged runner not found — skipping staged lint."
+fi

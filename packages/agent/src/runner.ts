@@ -9,8 +9,22 @@ async function runSingleCycle(
   client: SuiMicrogridClient,
 ): Promise<{ action: AgentAction; digest: string | null }> {
   const config = loadAgentConfig();
-  const state = await client.readMicrogridState();
-  const telemetry = await client.fetchTelemetry();
+  // Read chain state and telemetry in parallel — neither reads the other's
+  // result (the "fake edge" between them is removed per task-graph guidance).
+  const [state, telemetry] = await Promise.all([
+    client.readMicrogridState(),
+    client.fetchTelemetry(),
+  ]);
+
+  // Verifier gate: never act on untrusted oracle data. Fail closed to noop.
+  if (!telemetry.trusted && !config.allowUnverifiedTelemetry) {
+    const action: AgentAction = {
+      action: "noop",
+      reason: `Blocked: untrusted telemetry (${telemetry.reason ?? "unknown"})`,
+    };
+    client.logSafe(`decision=noop reason=${action.reason}`);
+    return { action, digest: null };
+  }
 
   const policyInput = {
     state,
@@ -29,7 +43,19 @@ async function runSingleCycle(
     ollamaBaseUrl: config.ollamaBaseUrl,
   });
 
-  const action = filterAllowedAction(proposed, policyInput);
+  let action = filterAllowedAction(proposed, policyInput);
+
+  // Human gate: buyout (irreversible ownership) and dividend (capital movement)
+  // require the human-held AdminCap on-chain. If the operator has not armed the
+  // agent with an AdminCap id, the agent must not attempt them — it holds the
+  // decision pending human approval instead of executing.
+  if ((action.action === "buyout" || action.action === "dividend") && !config.adminCapId) {
+    action = {
+      action: "noop",
+      reason: `Human gate: ${action.action} requires operator AdminCap approval (SUI_ADMIN_CAP_ID unset)`,
+    };
+  }
+
   client.logSafe(`decision=${action.action} reason=${action.reason}`);
 
   const digest = await client.executeAction(action, telemetry);
@@ -41,6 +67,18 @@ async function runSingleCycle(
   }
 
   return { action, digest };
+}
+
+/** Mist a given action will spend, for the per-run budget guardrail. */
+function actionSpendMist(action: AgentAction, config: ReturnType<typeof loadAgentConfig>): number {
+  switch (action.action) {
+    case "deposit":
+      return action.depositAmountMist ?? config.depositAmountMist;
+    case "dividend":
+      return action.dividendAmountMist ?? config.dividendAmountMist;
+    default:
+      return 0;
+  }
 }
 
 async function runDemoSequence(client: SuiMicrogridClient, maxCycles: number): Promise<void> {
@@ -75,12 +113,42 @@ async function runDemoSequence(client: SuiMicrogridClient, maxCycles: number): P
 }
 
 async function runContinuous(client: SuiMicrogridClient, pollIntervalMs: number): Promise<void> {
+  const config = loadAgentConfig();
+  let cycle = 0;
+  let spentMist = 0;
+  let consecutiveErrors = 0;
+  const MAX_CONSECUTIVE_ERRORS = 5;
+
   const loop = async (): Promise<void> => {
-    try {
-      await runSingleCycle(client);
-    } catch (error) {
-      console.error(error);
+    // Guardrail: bounded number of rounds per run (task-graph loop cap).
+    if (cycle >= config.maxCycles) {
+      client.logSafe(`stop: reached max cycles (${config.maxCycles}); requires human re-arm`);
+      return;
     }
+    cycle += 1;
+
+    try {
+      const { action } = await runSingleCycle(client);
+      consecutiveErrors = 0;
+
+      // Guardrail: bounded cumulative spend per run.
+      spentMist += actionSpendMist(action, config);
+      if (spentMist >= config.maxSpendMistPerRun) {
+        client.logSafe(
+          `stop: per-run spend cap reached (${spentMist} >= ${config.maxSpendMistPerRun} mist); requires human re-arm`,
+        );
+        return;
+      }
+    } catch (error) {
+      consecutiveErrors += 1;
+      console.error(error);
+      // Guardrail: do not swallow a persistent failure forever.
+      if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+        client.logSafe(`stop: ${consecutiveErrors} consecutive errors; requires human intervention`);
+        return;
+      }
+    }
+
     setTimeout(() => {
       void loop();
     }, pollIntervalMs);

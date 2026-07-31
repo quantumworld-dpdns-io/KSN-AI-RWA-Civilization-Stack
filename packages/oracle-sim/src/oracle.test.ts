@@ -47,6 +47,7 @@ describe("oracle telemetry", () => {
 
   it("serves capabilities, cached telemetry, refreshes, and audit history", async () => {
     const store = new MemoryTelemetryStore();
+    process.env.ORACLE_API_KEY = "test-oracle-key";
     const app = buildApp({ store, logger: false });
 
     const capabilities = await app.inject({ method: "GET", url: "/capabilities" });
@@ -57,7 +58,15 @@ describe("oracle telemetry", () => {
     expect(first.statusCode).toBe(200);
     expect(store.historyById.get("type-07-taipei-microgrid-gpu")).toHaveLength(1);
 
-    const refresh = await app.inject({ method: "POST", url: "/telemetry/type-07-taipei-microgrid-gpu/refresh" });
+    // Protected route: rejected without the API key, accepted with it.
+    const unauthorized = await app.inject({ method: "POST", url: "/telemetry/type-07-taipei-microgrid-gpu/refresh" });
+    expect(unauthorized.statusCode).toBe(401);
+
+    const refresh = await app.inject({
+      method: "POST",
+      url: "/telemetry/type-07-taipei-microgrid-gpu/refresh",
+      headers: { "x-api-key": "test-oracle-key" },
+    });
     expect(refresh.statusCode).toBe(201);
 
     const history = await app.inject({ method: "GET", url: "/telemetry/type-07-taipei-microgrid-gpu/history?limit=10" });
@@ -97,18 +106,22 @@ describe("oracle telemetry", () => {
       NODE_ENV: process.env.NODE_ENV,
       REDIS_PASSWORD: process.env.REDIS_PASSWORD,
       ORACLE_SIGNING_SECRET: process.env.ORACLE_SIGNING_SECRET,
+      ORACLE_API_KEY: process.env.ORACLE_API_KEY,
       ORACLE_STORE: process.env.ORACLE_STORE
     };
     try {
       process.env.NODE_ENV = "production";
       delete process.env.REDIS_PASSWORD;
       delete process.env.ORACLE_SIGNING_SECRET;
+      delete process.env.ORACLE_API_KEY;
       expect(() => validateRuntimeConfiguration()).toThrow(/Missing required/);
       process.env.REDIS_PASSWORD = "too-short";
       process.env.ORACLE_SIGNING_SECRET = "also-short";
+      process.env.ORACLE_API_KEY = "also-short";
       expect(() => validateRuntimeConfiguration()).toThrow(/at least 16 characters/);
       process.env.REDIS_PASSWORD = "redis-password-32-characters-long";
       process.env.ORACLE_SIGNING_SECRET = "oracle-signing-secret-32-characters";
+      process.env.ORACLE_API_KEY = "oracle-api-key-32-characters-long-x";
       expect(() => validateRuntimeConfiguration()).not.toThrow();
       process.env.ORACLE_STORE = "memory";
       delete process.env.REDIS_PASSWORD;
@@ -117,6 +130,7 @@ describe("oracle telemetry", () => {
       restoreEnvironment("NODE_ENV", previous.NODE_ENV);
       restoreEnvironment("REDIS_PASSWORD", previous.REDIS_PASSWORD);
       restoreEnvironment("ORACLE_SIGNING_SECRET", previous.ORACLE_SIGNING_SECRET);
+      restoreEnvironment("ORACLE_API_KEY", previous.ORACLE_API_KEY);
       restoreEnvironment("ORACLE_STORE", previous.ORACLE_STORE);
     }
   });

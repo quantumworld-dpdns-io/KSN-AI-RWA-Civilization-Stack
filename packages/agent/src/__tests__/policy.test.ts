@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluatePolicy } from "../policy.js";
+import { evaluatePolicy, filterAllowedAction, type PolicyInput } from "../policy.js";
 import type { MicrogridState } from "../types.js";
 
 const baseState: MicrogridState = {
@@ -103,5 +103,40 @@ describe("evaluatePolicy", () => {
     });
 
     expect(action.action).toBe("noop");
+  });
+});
+
+describe("filterAllowedAction amount clamping", () => {
+  const dividendInput: PolicyInput = {
+    state: {
+      ...baseState,
+      agencyStage: 3,
+      treasuryMist: 10_000_000_000,
+      ksnScore: 20_000_000,
+      dividendThreshold: 50_000_000,
+    },
+    telemetry: { powerWatts: baseState.powerWatts, hashrate: baseState.hashrate },
+    dividendAmountMist: 10_000_000,
+    depositAmountMist: 150_000_000,
+    allowBuyout: true,
+  };
+
+  it("overrides an LLM-inflated dividend amount with the configured cap", () => {
+    const result = filterAllowedAction(
+      { action: "dividend", reason: "drain", dividendAmountMist: 9_000_000_000 },
+      dividendInput,
+    );
+    expect(result.action).toBe("dividend");
+    expect(result.dividendAmountMist).toBe(dividendInput.dividendAmountMist);
+  });
+
+  it("overrides an LLM-inflated deposit amount with the configured cap", () => {
+    const depositInput: PolicyInput = { ...dividendInput, state: { ...baseState, treasuryMist: 0 } };
+    const result = filterAllowedAction(
+      { action: "deposit", reason: "overspend", depositAmountMist: 5_000_000_000 },
+      depositInput,
+    );
+    expect(result.action).toBe("deposit");
+    expect(result.depositAmountMist).toBe(depositInput.depositAmountMist);
   });
 });

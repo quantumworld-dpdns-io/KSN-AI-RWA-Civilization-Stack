@@ -124,5 +124,14 @@ export function filterAllowedAction(
     };
   }
 
+  // Never let the model choose spend amounts: clamp to the operator-configured
+  // caps regardless of what the LLM proposed (prompt-injection / drain guard).
+  if (proposed.action === "dividend") {
+    return { ...proposed, dividendAmountMist: input.dividendAmountMist };
+  }
+  if (proposed.action === "deposit") {
+    return { ...proposed, depositAmountMist: input.depositAmountMist };
+  }
+
   return proposed;
 }

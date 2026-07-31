@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aks/core": "workspace:*",
+    "@aks/oracle-sim": "workspace:*",
     "@mysten/sui": "^1.28.2",
     "openai": "^4.104.0",
     "zod": "^4.4.3"

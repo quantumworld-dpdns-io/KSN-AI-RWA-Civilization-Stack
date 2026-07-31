@@ -16,7 +16,7 @@
       ".native",
       ""
     ],
-    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "types": [
       "react",
       "react-native",
@@ -31,8 +31,7 @@
   "include": [
     "App.tsx",
     "index.js",
-    "src/**/*",
-    "../packages/core/src/**/*.ts"
+    "src/**/*"
   ],
   "extends": "expo/tsconfig.base"
 }

@@ -68,6 +68,9 @@ export function buildCliCommand(
       };
     }
     case "buyout":
+      if (!config.adminCapId) {
+        throw new Error("execute_buyout requires operator AdminCap (SUI_ADMIN_CAP_ID unset)");
+      }
       return {
         command: "sui",
         args: [
@@ -82,10 +85,14 @@ export function buildCliCommand(
           "--args",
           config.microgridId,
           config.agentCapId,
+          config.adminCapId,
           "--json",
         ],
       };
     case "dividend":
+      if (!config.adminCapId) {
+        throw new Error("distribute_planetary_dividend requires operator AdminCap (SUI_ADMIN_CAP_ID unset)");
+      }
       return {
         command: "sui",
         args: [
@@ -100,6 +107,7 @@ export function buildCliCommand(
           "--args",
           config.microgridId,
           config.agentCapId,
+          config.adminCapId,
           String(action.dividendAmountMist ?? config.dividendAmountMist),
           "--json",
         ],

@@ -7,18 +7,19 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": [
-      "node_modules/**",
-      "dist/**",
-      "build/**",
-      ".turbo/**",
-      "*.lock",
-      "*.log",
-      ".DS_Store",
-      "coverage/**",
-      ".git/**",
-      "infra/**",
-      "*.md"
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/dist/**",
+      "!**/build/**",
+      "!**/.turbo/**",
+      "!**/*.lock",
+      "!**/*.log",
+      "!**/.DS_Store",
+      "!**/coverage/**",
+      "!**/.git/**",
+      "!infra/**",
+      "!**/*.md"
     ]
   },
   "formatter": {

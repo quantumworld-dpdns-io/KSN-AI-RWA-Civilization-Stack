@@ -47,13 +47,5 @@
   },
   "engines": {
     "node": "24.x"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp",
-      "duckdb",
-      "@parcel/watcher"
-    ]
   }
 }

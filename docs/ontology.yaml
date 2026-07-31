@@ -1,0 +1,83 @@
+# KSN-RWA Knowledge-Graph Ontology
+#
+# The domain schema for the Autonomous Kardashev RWA Stack, modeled per the
+# graph-engineering discipline (model the domain BEFORE extracting; every fact
+# carries provenance; events are first-class nodes, never flattened into pairwise
+# edges). This is the target the four disjoint telemetry shapes
+# (packages/core/src/types.ts, packages/oracle-sim/src/telemetry.ts,
+# packages/shared/src/lakehouse/schema.ts, packages/oracle/src/types.ts) should
+# converge onto — one canonical TelemetryReading + a canonical asset registry.
+#
+# Status: schema definition (Wave 3, phase 0). The nodes/edges tables, agent
+# write-back, and /trace/:digest serving layer are the follow-on phases.
+
+version: 0.1.0
+
+# ---------------------------------------------------------------------------
+# Entities — durable things the system remembers.
+# ---------------------------------------------------------------------------
+entities:
+  Asset:
+    description: A physical infrastructure unit (microgrid, GPU cluster, orbital array).
+    example_ids: [type-07-taipei-microgrid-gpu]
+    attributes: [assetClass, region, energySource, computeArchitecture, complianceStatus]
+  OracleSource:
+    description: A telemetry provider identity. The unit of trust for corroboration.
+    example_ids: [oracle-sim, mqtt-meter-3]
+    attributes: [type, pubkey]
+  Agent:
+    description: An autonomous actor keyed by its Sui address.
+    attributes: [agencyStage, suiAddress]
+  Contract:
+    description: An on-chain object or contract (Sui Microgrid object, Solidity RWA).
+    example_ids: [ComputeEnergyRWA, KSNOracleAdapter, AIAgentTreasury]
+  Stakeholder:
+    description: A yield recipient class.
+    example_ids: [humanInvestor, aiTreasury, maintenanceReserve, insurancePool, planetaryDividendPool]
+
+# ---------------------------------------------------------------------------
+# Events — first-class nodes. Every event carries provenance so any downstream
+# fact can be traced back to the signed reading that justified it.
+# ---------------------------------------------------------------------------
+events:
+  _provenance_fields: [time, source, payloadHash, signature, confidence]
+  TelemetryReading:
+    description: One signed oracle reading for an asset.
+    args: [asset, source, powerWatts, hashrate, utilization, signals, ksnScore]
+  AgentDecision:
+    description: One decision the agent made in a cycle (proposed action + reason).
+    args: [agent, action, reason, baselineAction, llmModel, telemetryTrusted]
+  OnChainTx:
+    description: One executed on-chain transaction.
+    args: [contract, digest, action, amountMist]
+  AgencyStageTransition:
+    description: A change in an asset's AI-agency stage.
+    args: [asset, fromStage, toStage]
+
+# ---------------------------------------------------------------------------
+# Relations — an edge exists only when there is a real dependency between nodes.
+# ---------------------------------------------------------------------------
+relations:
+  MEASURED:      { domain: OracleSource,     range: TelemetryReading }
+  OBSERVES:      { domain: TelemetryReading, range: Asset }
+  CORROBORATES:  { domain: TelemetryReading, range: TelemetryReading }   # multi-source agreement
+  CONTRADICTS:   { domain: TelemetryReading, range: TelemetryReading }   # multi-source conflict
+  JUSTIFIED_BY:  { domain: AgentDecision,    range: TelemetryReading }   # the traceability edge
+  EXECUTED_AS:   { domain: AgentDecision,    range: OnChainTx }
+  TARGETS:       { domain: OnChainTx,        range: Contract }
+  DISTRIBUTED_TO:{ domain: OnChainTx,        range: Stakeholder, attributes: [amountMist] }
+  TRIGGERED:     { domain: OnChainTx,        range: AgencyStageTransition }
+  LOCATED_IN:    { domain: Asset,            range: region }
+  POWERED_BY:    { domain: Asset,            range: energySource }
+  OPERATES:      { domain: Agent,            range: Asset }
+
+# ---------------------------------------------------------------------------
+# Competency questions — what the graph must be able to answer. These are the
+# acceptance test for the schema (the README's own "traceability" promise).
+# ---------------------------------------------------------------------------
+competency_questions:
+  - Which signed oracle reading justified this dividend transaction (digest -> reading -> source)?
+  - Which assets in a region share an energy source whose readings a single source contradicts?
+  - Trace an asset's agency-stage transitions and the on-chain tx that triggered each.
+  - What is the structural confidence of a reading (how many independent sources CORROBORATE it)?
+  - Which decisions were made on untrusted/stale telemetry and were correctly held as noop?

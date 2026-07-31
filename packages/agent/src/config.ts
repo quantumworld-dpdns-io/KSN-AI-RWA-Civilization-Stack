@@ -48,6 +48,7 @@ export function loadAgentConfig(): AgentConfig {
     packageId,
     microgridId,
     agentCapId,
+    adminCapId: process.env.SUI_ADMIN_CAP_ID ?? demo?.adminCapId ?? demo?.adminCap,
     credentialId: process.env.SUI_CREDENTIAL_ID ?? demo?.credentialId,
     privateKeyHex: process.env.SUI_AGENT_PRIVATE_KEY,
     oracleUrl: process.env.ORACLE_URL ?? "http://127.0.0.1:8787",
@@ -59,6 +60,10 @@ export function loadAgentConfig(): AgentConfig {
     openAiApiKey: process.env.OPENAI_API_KEY,
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL,
     llmModel: process.env.AGENT_LLM_MODEL ?? "gpt-4o-mini",
+    telemetryMaxAgeMs: Number(process.env.AGENT_TELEMETRY_MAX_AGE_MS ?? "120000"),
+    allowUnverifiedTelemetry: process.env.AGENT_ALLOW_UNVERIFIED_TELEMETRY === "true",
+    maxCycles: Number(process.env.AGENT_MAX_CYCLES ?? "1000"),
+    maxSpendMistPerRun: Number(process.env.AGENT_MAX_SPEND_MIST_PER_RUN ?? "1000000000"),
   };
 }
 

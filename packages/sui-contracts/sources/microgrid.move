@@ -19,6 +19,9 @@ const EEmptyDividendPool: u64 = 8;
 const EInvalidShare: u64 = 9;
 const EWrongMicrogrid: u64 = 10;
 const ENotHolder: u64 = 11;
+const EPaused: u64 = 12;
+const EShareCapExceeded: u64 = 13;
+const EAlreadyClaimed: u64 = 14;
 
 public struct Microgrid has key {
     id: UID,
@@ -33,6 +36,15 @@ public struct Microgrid has key {
     buyout_threshold: u64,
     treasury_balance: Balance<SUI>,
     dividend_pool: Balance<SUI>,
+    /// Kill-switch: when true, every state-changing entry function aborts.
+    /// Only the human-held AdminCap can toggle it.
+    paused: bool,
+    /// Sum of share_bps across all issued credentials. Capped at 10_000 (100%)
+    /// so total legitimate claims can never exceed the pool (over-issuance guard).
+    total_issued_bps: u64,
+    /// Monotonic dividend round, bumped each distribution. A credential may claim
+    /// each round at most once.
+    dividend_round: u64,
 }
 
 public struct AdminCap has key, store {
@@ -68,6 +80,11 @@ public struct DividendClaimed has copy, drop {
     microgrid_id: ID,
     holder: address,
     amount: u64,
+}
+
+public struct PauseToggled has copy, drop {
+    microgrid_id: ID,
+    paused: bool,
 }
 
 const STAGE_AI_MANAGED: u8 = 1;
@@ -107,8 +124,29 @@ public fun create_microgrid(
         buyout_threshold,
         treasury_balance: balance::zero(),
         dividend_pool: balance::zero(),
+        paused: false,
+        total_issued_bps: 0,
+        dividend_round: 0,
     };
     transfer::share_object(microgrid);
+}
+
+/// Human kill-switch. Only the AdminCap holder (a human operator) can pause or
+/// resume the microgrid. While paused, all agent and holder actions abort.
+public fun set_paused(
+    microgrid: &mut Microgrid,
+    _admin: &AdminCap,
+    paused: bool,
+) {
+    microgrid.paused = paused;
+    event::emit(PauseToggled {
+        microgrid_id: object::id(microgrid),
+        paused,
+    });
+}
+
+public fun is_paused(microgrid: &Microgrid): bool {
+    microgrid.paused
 }
 
 public fun update_telemetry(
@@ -118,6 +156,7 @@ public fun update_telemetry(
     hashrate: u64,
     ctx: &TxContext,
 ) {
+    assert!(!microgrid.paused, EPaused);
     agent_cap::assert_agent(cap, ctx);
     agent_cap::assert_microgrid(cap, object::id(microgrid));
     assert!(hashrate > 0, EInvalidTelemetry);
@@ -140,6 +179,7 @@ public fun deposit_yield(
     payment: Coin<SUI>,
     ctx: &TxContext,
 ) {
+    assert!(!microgrid.paused, EPaused);
     agent_cap::assert_agent(cap, ctx);
     agent_cap::assert_microgrid(cap, object::id(microgrid));
 
@@ -157,11 +197,17 @@ public fun deposit_yield(
     });
 }
 
+/// Irreversible ownership transfer. Requires BOTH the agent capability and the
+/// human-held AdminCap (the human gate): the transaction can only execute if a
+/// human operator co-signs by supplying their AdminCap. This makes the code
+/// match the oracle's advertised `humanApprovalRequiredForIssuanceAndOwnership`.
 public fun execute_buyout(
     microgrid: &mut Microgrid,
     cap: &AgentCap,
+    _admin: &AdminCap,
     ctx: &mut TxContext,
 ) {
+    assert!(!microgrid.paused, EPaused);
     agent_cap::assert_agent(cap, ctx);
     agent_cap::assert_microgrid(cap, object::id(microgrid));
     assert!(microgrid.agency_stage < STAGE_SOVEREIGN_AI_ASSET, EAlreadySovereign);
@@ -181,12 +227,17 @@ public fun execute_buyout(
     });
 }
 
+/// Moves treasury funds into the dividend pool. Requires the human-held AdminCap
+/// (human gate) in addition to the agent capability, since this is an
+/// expensive-to-undo capital movement.
 public fun distribute_planetary_dividend(
     microgrid: &mut Microgrid,
     cap: &AgentCap,
+    _admin: &AdminCap,
     amount: u64,
     ctx: &TxContext,
 ) {
+    assert!(!microgrid.paused, EPaused);
     agent_cap::assert_agent(cap, ctx);
     agent_cap::assert_microgrid(cap, object::id(microgrid));
     assert!(microgrid.ksn_score <= microgrid.dividend_threshold, EDividendThresholdNotMet);
@@ -194,6 +245,8 @@ public fun distribute_planetary_dividend(
 
     let payout = balance::split(&mut microgrid.treasury_balance, amount);
     balance::join(&mut microgrid.dividend_pool, payout);
+    // Open a new dividend round so each credential can claim exactly once.
+    microgrid.dividend_round = microgrid.dividend_round + 1;
 
     if (microgrid.agency_stage == STAGE_SOVEREIGN_AI_ASSET) {
         microgrid.agency_stage = STAGE_KARDASHEV_CONVERGENCE;
@@ -207,13 +260,16 @@ public fun distribute_planetary_dividend(
 }
 
 public fun mint_credential(
-    microgrid: &Microgrid,
+    microgrid: &mut Microgrid,
     _admin: &AdminCap,
     holder: address,
     share_bps: u64,
     ctx: &mut TxContext,
 ) {
     assert!(share_bps > 0 && share_bps <= 10_000, EInvalidShare);
+    // Enforce that cumulative issued shares never exceed 100%.
+    assert!(microgrid.total_issued_bps + share_bps <= 10_000, EShareCapExceeded);
+    microgrid.total_issued_bps = microgrid.total_issued_bps + share_bps;
     let credential = credential::create(object::id(microgrid), holder, share_bps, ctx);
     credential::transfer_to(credential, holder);
 }
@@ -231,11 +287,15 @@ public fun issue_agent_cap(
 #[allow(lint(self_transfer))]
 public fun claim_dividend(
     microgrid: &mut Microgrid,
-    credential: &DividendCredential,
+    credential: &mut DividendCredential,
     ctx: &mut TxContext,
 ) {
+    assert!(!microgrid.paused, EPaused);
     assert!(object::id(microgrid) == credential.microgrid_id(), EWrongMicrogrid);
     assert!(credential.holder() == ctx.sender(), ENotHolder);
+    // Each credential may claim a given dividend round only once.
+    assert!(credential.last_claimed_round() < microgrid.dividend_round, EAlreadyClaimed);
+    credential.mark_claimed(microgrid.dividend_round);
 
     let pool = balance::value(&microgrid.dividend_pool);
     assert!(pool > 0, EEmptyDividendPool);

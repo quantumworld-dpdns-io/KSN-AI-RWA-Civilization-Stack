@@ -103,6 +103,9 @@ importers:
       '@aks/core':
         specifier: workspace:*
         version: link:../core
+      '@aks/oracle-sim':
+        specifier: workspace:*
+        version: link:../oracle-sim
       '@mysten/sui':
         specifier: ^1.28.2
         version: 1.45.2(typescript@6.0.3)

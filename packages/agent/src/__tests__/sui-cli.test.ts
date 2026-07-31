@@ -15,6 +15,10 @@ const baseConfig: AgentConfig = {
   depositAmountMist: 150_000_000,
   allowBuyout: true,
   llmModel: "gpt-4o-mini",
+  telemetryMaxAgeMs: 120_000,
+  allowUnverifiedTelemetry: false,
+  maxCycles: 1000,
+  maxSpendMistPerRun: 1_000_000_000,
 };
 
 describe("shouldUseCliBackend", () => {
