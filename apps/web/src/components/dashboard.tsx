@@ -131,9 +131,6 @@ export function Dashboard({
           <NavButton active={view === "contracts"} onClick={() => setView("contracts")} icon="⬡">
             Sepolia contracts
           </NavButton>
-          <NavButton active={view === "sui"} onClick={() => setView("sui")} icon="◎">
-            Sui microgrid
-          </NavButton>
         </nav>
         <div className="sidebar-status">
           <div className="status-row">
