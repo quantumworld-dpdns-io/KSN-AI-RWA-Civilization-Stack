@@ -164,6 +164,7 @@ export function Dashboard({
             <p className="eyebrow">Autonomous infrastructure intelligence</p>
             <h1>{titles[view]}</h1>
           </div>
+          {/** biome-ignore lint/a11y/useButtonType: <explanation> */}
           <button className="refresh" onClick={refresh} disabled={refreshing}>
             <span className={refreshing ? "spin" : ""}>↻</span>
             {refreshing ? "Syncing" : "Sync oracle"}
