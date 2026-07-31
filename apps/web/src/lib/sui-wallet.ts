@@ -4,6 +4,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { getWallets, type Wallet, type WalletAccount } from "@mysten/wallet-standard";
 
 const SIGN_EXEC = "sui:signAndExecuteTransaction";
+const SIGN_EXEC_BLOCK = "sui:signAndExecuteTransactionBlock";
 const CONNECT = "standard:connect";
 
 export interface SuiWalletInfo {
@@ -21,7 +22,7 @@ export function listSuiWallets(): SuiWalletInfo[] {
   if (typeof window === "undefined") return [];
   return getWallets()
     .get()
-    .filter((w) => SIGN_EXEC in w.features && CONNECT in w.features)
+    .filter((w) => (SIGN_EXEC in w.features || SIGN_EXEC_BLOCK in w.features) && CONNECT in w.features)
     .map((w) => ({ name: w.name, icon: w.icon as string, wallet: w }));
 }
 
