@@ -227,14 +227,20 @@ export async function start(): Promise<void> {
 
 export function validateRuntimeConfiguration(): void {
   if (process.env.NODE_ENV !== "production") return;
+  // Secrets whose absence must abort boot (integrity + datastore auth).
   const requiredSecrets =
     process.env.ORACLE_STORE === "memory"
-      ? ["ORACLE_SIGNING_SECRET", "ORACLE_API_KEY"]
-      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET", "ORACLE_API_KEY"];
+      ? ["ORACLE_SIGNING_SECRET"]
+      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"];
   const missing = requiredSecrets.filter((name) => !process.env[name]);
   if (missing.length) throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
   const weak = requiredSecrets.filter((name) => process.env[name]!.length < 16);
   if (weak.length) throw new Error(`Production secrets must contain at least 16 characters: ${weak.join(", ")}`);
+  // ORACLE_API_KEY only gates the write route — its absence disables writes but
+  // must NOT take the whole (read-serving) service down. Warn, don't throw.
+  if (!process.env.ORACLE_API_KEY) {
+    console.warn("[oracle] ORACLE_API_KEY not set — state-mutating routes are disabled (reads still served).");
+  }
 }
 
 function installShutdownHandlers(app: FastifyInstance): void {

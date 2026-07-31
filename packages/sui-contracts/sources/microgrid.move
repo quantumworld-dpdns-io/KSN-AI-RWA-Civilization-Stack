@@ -22,6 +22,7 @@ const ENotHolder: u64 = 11;
 const EPaused: u64 = 12;
 const EShareCapExceeded: u64 = 13;
 const EAlreadyClaimed: u64 = 14;
+const EZeroStake: u64 = 15;
 
 public struct Microgrid has key {
     id: UID,
@@ -85,6 +86,20 @@ public struct DividendClaimed has copy, drop {
 public struct PauseToggled has copy, drop {
     microgrid_id: ID,
     paused: bool,
+}
+
+/// A token representing SUI a holder staked into the microgrid treasury.
+public struct StakeReceipt has key, store {
+    id: UID,
+    microgrid_id: ID,
+    staker: address,
+    amount_mist: u64,
+}
+
+public struct Staked has copy, drop {
+    microgrid_id: ID,
+    staker: address,
+    amount: u64,
 }
 
 const STAGE_AI_MANAGED: u8 = 1;
@@ -309,6 +324,39 @@ public fun claim_dividend(
         holder: ctx.sender(),
         amount,
     });
+}
+
+/// Public staking: anyone can stake SUI into the microgrid treasury and receive
+/// a StakeReceipt token representing their contribution. No capability required,
+/// so any connected wallet can participate. Honors the kill-switch.
+#[allow(lint(self_transfer))]
+public fun stake(
+    microgrid: &mut Microgrid,
+    payment: Coin<SUI>,
+    ctx: &mut TxContext,
+) {
+    assert!(!microgrid.paused, EPaused);
+    let amount = coin::value(&payment);
+    assert!(amount > 0, EZeroStake);
+    balance::join(&mut microgrid.treasury_balance, coin::into_balance(payment));
+
+    let receipt = StakeReceipt {
+        id: object::new(ctx),
+        microgrid_id: object::id(microgrid),
+        staker: ctx.sender(),
+        amount_mist: amount,
+    };
+    transfer::public_transfer(receipt, ctx.sender());
+
+    event::emit(Staked {
+        microgrid_id: object::id(microgrid),
+        staker: ctx.sender(),
+        amount,
+    });
+}
+
+public fun stake_receipt_amount(receipt: &StakeReceipt): u64 {
+    receipt.amount_mist
 }
 
 public fun compute_ksn_score(power_watts: u64, hashrate: u64): u64 {

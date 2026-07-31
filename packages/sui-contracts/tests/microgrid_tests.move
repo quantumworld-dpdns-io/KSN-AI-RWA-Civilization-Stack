@@ -85,6 +85,30 @@ fun test_paused_blocks_telemetry() {
 }
 
 #[test]
+fun test_public_stake_mints_receipt() {
+    let mut scenario = ts::begin(ADMIN);
+    setup(&mut scenario);
+
+    // Any address (AGENT here, holding no capability) can stake SUI.
+    scenario.next_tx(AGENT);
+    {
+        let mut grid = scenario.take_shared<Microgrid>();
+        let coin = sui::coin::mint_for_testing<sui::sui::SUI>(5_000_000, scenario.ctx());
+        microgrid::stake(&mut grid, coin, scenario.ctx());
+        assert!(microgrid::treasury_value(&grid) == 5_000_000);
+        ts::return_shared(grid);
+    };
+    // The staker now holds a StakeReceipt token for the staked amount.
+    scenario.next_tx(AGENT);
+    {
+        let receipt = scenario.take_from_sender<ksn_microgrid::microgrid::StakeReceipt>();
+        assert!(microgrid::stake_receipt_amount(&receipt) == 5_000_000);
+        scenario.return_to_sender(receipt);
+    };
+    scenario.end();
+}
+
+#[test]
 #[expected_failure(abort_code = ksn_microgrid::microgrid::EShareCapExceeded)]
 fun test_mint_cannot_exceed_full_share() {
     let mut scenario = ts::begin(ADMIN);

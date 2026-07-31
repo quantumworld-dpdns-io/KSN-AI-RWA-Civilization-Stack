@@ -9,3 +9,9 @@ onlyBuiltDependencies:
   - sharp
   - duckdb
   - "@parcel/watcher"
+
+# Force patched transitive versions for known CVEs (CVE-2026-59873: node-tar DoS).
+# tar@6 is only pulled in by node-gyp (duckdb build tooling, trusted input) — the
+# CVE is not runtime-reachable here, but we patch it to satisfy scanners.
+overrides:
+  "tar@<7.5.19": ">=7.5.19"

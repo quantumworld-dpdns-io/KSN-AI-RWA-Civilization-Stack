@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
+import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
 import sepoliaDeployment from "@/generated/contracts.sepolia.json";
 import type {
@@ -191,10 +192,18 @@ export function Dashboard({
             )}
             {view === "simulator" && <Simulator />}
             {view === "contracts" && <SettlementContracts />}
-            {view === "sui" && <SuiMicrogridPanel />}
+            {view === "sui" && (
+              <>
+                <SuiMicrogridPanel />
+                <SuiWalletStake />
+              </>
+            )}
           </>
         ) : view === "sui" ? (
-          <SuiMicrogridPanel />
+          <>
+            <SuiMicrogridPanel />
+            <SuiWalletStake />
+          </>
         ) : (
           <div className="panel empty">No telemetry is available.</div>
         )}

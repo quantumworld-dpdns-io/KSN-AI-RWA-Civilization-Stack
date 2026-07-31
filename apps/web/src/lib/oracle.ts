@@ -3,30 +3,6 @@ import { normalizeTelemetry, normalizeTelemetryList } from "./normalize";
 
 const DEFAULT_ORACLE_URL = "http://127.0.0.1:8787";
 
-// #region agent log
-function debugOracleLog(
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-  runId: string,
-  hypothesisId: string,
-) {
-  fetch("http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "52a969" },
-    body: JSON.stringify({
-      sessionId: "52a969",
-      location,
-      message,
-      data,
-      runId,
-      hypothesisId,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-}
-// #endregion
-
 export function resolveOracleBaseUrl(): string {
   return (process.env.ORACLE_API_URL ?? process.env.ORACLE_URL ?? DEFAULT_ORACLE_URL).replace(/\/$/, "");
 }
@@ -54,62 +30,20 @@ function oracleUpstreamMeta(baseUrl: string) {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const resolvedBaseUrl = resolveOracleBaseUrl();
   const meta = oracleUpstreamMeta(resolvedBaseUrl);
-  // #region agent log
-  debugOracleLog(
-    "apps/web/src/lib/oracle.ts:request:start",
-    "oracle request start",
-    { path, method: init?.method ?? "GET", ...meta, baseUrl: resolvedBaseUrl },
-    "pre-fix",
-    "H1|H2|H3",
-  );
-  // #endregion
-  try {
-    const response = await fetch(`${resolvedBaseUrl}${path}`, {
-      ...init,
-      cache: "no-store",
-      signal: AbortSignal.timeout(4_000),
-      headers: { "content-type": "application/json", ...init?.headers },
-    });
-    // #region agent log
-    debugOracleLog(
-      "apps/web/src/lib/oracle.ts:request:response",
-      "oracle request response",
-      {
-        path,
-        status: response.status,
-        ok: response.ok,
-        contentType: response.headers.get("content-type"),
-        ...meta,
-      },
-      "pre-fix",
-      "H2|H3|H4",
-    );
-    // #endregion
-    if (!response.ok) {
-      const err = new Error(`Oracle request failed (${response.status})`) as Error & {
-        upstream?: Record<string, unknown>;
-      };
-      err.upstream = { ...meta, status: response.status, path };
-      throw err;
-    }
-    return response.json() as Promise<T>;
-  } catch (error) {
-    // #region agent log
-    debugOracleLog(
-      "apps/web/src/lib/oracle.ts:request:error",
-      "oracle request error",
-      {
-        path,
-        ...meta,
-        baseUrl: resolvedBaseUrl,
-        error: error instanceof Error ? error.message : "unknown",
-      },
-      "pre-fix",
-      "H1|H2|H5",
-    );
-    // #endregion
-    throw error;
+  const response = await fetch(`${resolvedBaseUrl}${path}`, {
+    ...init,
+    cache: "no-store",
+    signal: AbortSignal.timeout(4_000),
+    headers: { "content-type": "application/json", ...init?.headers },
+  });
+  if (!response.ok) {
+    const err = new Error(`Oracle request failed (${response.status})`) as Error & {
+      upstream?: Record<string, unknown>;
+    };
+    err.upstream = { ...meta, status: response.status, path };
+    throw err;
   }
+  return response.json() as Promise<T>;
 }
 
 export async function getTelemetry(): Promise<AssetTelemetry[]> {
@@ -132,9 +66,7 @@ export async function getHealth(): Promise<ServiceHealth & { debug?: Record<stri
       redis: redis.status === "ok" && redis.redis === "connected" ? "connected" : "offline",
       signing: oracle.signing ?? "unknown",
       checkedAt,
-      // #region agent log
-      debug: { ...meta, runId: "pre-fix" },
-      // #endregion
+      debug: meta,
     };
   } catch (error) {
     const upstream =
@@ -147,9 +79,7 @@ export async function getHealth(): Promise<ServiceHealth & { debug?: Record<stri
       signing: "unknown",
       checkedAt,
       message: error instanceof Error ? error.message : "Unavailable",
-      // #region agent log
-      debug: { ...upstream, runId: "pre-fix", hypothesisId: "H1|H2|H3" },
-      // #endregion
+      debug: upstream,
     };
   }
 }
@@ -162,20 +92,6 @@ export async function getTelemetryHistory(assetId: string, limit = 50): Promise<
   const history = await request<TelemetryHistory>(
     `/telemetry/${encodeURIComponent(assetId)}/history?limit=${limit}`,
   );
-  // #region agent log
-  debugOracleLog(
-    "apps/web/src/lib/oracle.ts:history",
-    "oracle history payload",
-    {
-      assetId,
-      limit,
-      itemCount: Array.isArray(history.items) ? history.items.length : -1,
-      count: history.count ?? null,
-    },
-    "pre-fix",
-    "H3|H4",
-  );
-  // #endregion
   return { ...history, items: normalizeTelemetryList(history.items) };
 }
 
