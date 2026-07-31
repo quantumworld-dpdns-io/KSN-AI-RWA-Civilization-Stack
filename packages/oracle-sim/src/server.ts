@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import Fastify, { type FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -227,15 +228,33 @@ export async function start(): Promise<void> {
 
 export function validateRuntimeConfiguration(): void {
   if (process.env.NODE_ENV !== "production") return;
-  // Secrets whose absence must abort boot (integrity + datastore auth).
-  const requiredSecrets =
-    process.env.ORACLE_STORE === "memory"
-      ? ["ORACLE_SIGNING_SECRET"]
-      : ["REDIS_PASSWORD", "ORACLE_SIGNING_SECRET"];
-  const missing = requiredSecrets.filter((name) => !process.env[name]);
-  if (missing.length) throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
-  const weak = requiredSecrets.filter((name) => process.env[name]!.length < 16);
-  if (weak.length) throw new Error(`Production secrets must contain at least 16 characters: ${weak.join(", ")}`);
+
+  // Signing key: prefer an operator-provided persistent secret. If absent, mint
+  // a strong EPHEMERAL one instead of crash-looping the container. This still
+  // signs telemetry with an unguessable key (unlike the old public dev key) —
+  // it just isn't stable across restarts/replicas, so set a persistent value
+  // (ORACLE_SIGNING_SECRET) for signatures that verify off-box.
+  if (!process.env.ORACLE_SIGNING_SECRET) {
+    process.env.ORACLE_SIGNING_SECRET = randomBytes(32).toString("hex");
+    console.warn(
+      "[oracle] ORACLE_SIGNING_SECRET not set — generated an ephemeral signing key. " +
+        "Set a persistent ORACLE_SIGNING_SECRET for cross-restart, off-box-verifiable signatures.",
+    );
+  } else if (process.env.ORACLE_SIGNING_SECRET.length < 16) {
+    // A provided secret that's too weak is a real misconfiguration — fail loudly.
+    throw new Error("Production secret ORACLE_SIGNING_SECRET must contain at least 16 characters.");
+  }
+
+  // Redis auth is genuinely required when the Redis store is used.
+  if (process.env.ORACLE_STORE !== "memory") {
+    if (!process.env.REDIS_PASSWORD) {
+      throw new Error("Missing required production environment variables: REDIS_PASSWORD");
+    }
+    if (process.env.REDIS_PASSWORD.length < 16) {
+      throw new Error("Production secret REDIS_PASSWORD must contain at least 16 characters.");
+    }
+  }
+
   // ORACLE_API_KEY only gates the write route — its absence disables writes but
   // must NOT take the whole (read-serving) service down. Warn, don't throw.
   if (!process.env.ORACLE_API_KEY) {
