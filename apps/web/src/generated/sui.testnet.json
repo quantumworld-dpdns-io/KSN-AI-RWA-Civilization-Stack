@@ -3,6 +3,7 @@
   "graphqlUrl": "https://graphql.testnet.sui.io/graphql",
   "packageId": "0xc74c92119fd9eb424bc048c46941e1c629cb887a35d7d66b5caa6f140db96703",
   "microgridId": "0xe7582689ccd8aaf9c76ef8a79a3ccb4c5cfb2097d71f772dee846600d4faed67",
+  "microgridInitialSharedVersion": 349181886,
   "assetId": "type-07-taipei-microgrid-gpu",
   "publishedAt": "2026-07-31T12:48:13.000Z",
   "explorer": "https://suiscan.xyz/testnet"
