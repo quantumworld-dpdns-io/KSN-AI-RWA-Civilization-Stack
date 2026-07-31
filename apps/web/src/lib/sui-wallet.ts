@@ -22,7 +22,9 @@ export function listSuiWallets(): SuiWalletInfo[] {
   if (typeof window === "undefined") return [];
   return getWallets()
     .get()
-    .filter((w) => (SIGN_EXEC in w.features || SIGN_EXEC_BLOCK in w.features) && CONNECT in w.features)
+    .filter(
+      (w) => (SIGN_EXEC in w.features || SIGN_EXEC_BLOCK in w.features) && CONNECT in w.features
+    )
     .map((w) => ({ name: w.name, icon: w.icon as string, wallet: w }));
 }
 
@@ -60,29 +62,71 @@ export interface StakeParams {
  * Build and submit a `microgrid::stake` transaction through the connected
  * wallet: split `amountMist` off the gas coin and stake it, receiving a
  * StakeReceipt token. Returns the transaction digest.
+ *
+ * Handles the two common failure modes: (1) the connected account being on the
+ * wrong Sui network (the package/object are testnet-only — Slush defaults to
+ * mainnet), and (2) wallets that only expose the legacy
+ * `signAndExecuteTransactionBlock` feature.
  */
 export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
   const { wallet, account, packageId, microgridId, amountMist, network = "testnet" } = params;
+  const targetChain = `sui:${network}` as const;
+
+  // Guard the network mismatch up front with a clear, actionable message.
+  if (account.chains?.length && !account.chains.includes(targetChain)) {
+    throw new Error(
+      `Wallet account is on ${account.chains.join(", ")}, but the microgrid is on ${targetChain}. ` +
+        `Switch your wallet to Sui ${network} and reconnect.`
+    );
+  }
 
   const tx = new Transaction();
+  tx.setSenderIfNotSet(account.address);
   const [coin] = tx.splitCoins(tx.gas, [amountMist]);
   tx.moveCall({
     target: `${packageId}::microgrid::stake`,
     arguments: [tx.object(microgridId), coin],
   });
 
-  const feature = wallet.features[SIGN_EXEC] as {
-    signAndExecuteTransaction: (input: {
-      transaction: Transaction;
-      account: WalletAccount;
-      chain: `sui:${string}`;
-    }) => Promise<{ digest: string }>;
-  };
+  // Preferred: the current Wallet Standard feature.
+  const modern = wallet.features[SIGN_EXEC] as
+    | {
+        signAndExecuteTransaction: (input: {
+          transaction: Transaction;
+          account: WalletAccount;
+          chain: `sui:${string}`;
+        }) => Promise<{ digest: string }>;
+      }
+    | undefined;
+  if (modern) {
+    const result = await modern.signAndExecuteTransaction({
+      transaction: tx,
+      account,
+      chain: targetChain,
+    });
+    return result.digest;
+  }
 
-  const result = await feature.signAndExecuteTransaction({
-    transaction: tx,
-    account,
-    chain: `sui:${network}`,
-  });
-  return result.digest;
+  // Fallback: legacy feature exposed by older wallet builds.
+  const legacy = wallet.features[SIGN_EXEC_BLOCK] as
+    | {
+        signAndExecuteTransactionBlock: (input: {
+          transactionBlock: Transaction;
+          account: WalletAccount;
+          chain: `sui:${string}`;
+          options?: { showEffects?: boolean };
+        }) => Promise<{ digest: string }>;
+      }
+    | undefined;
+  if (legacy) {
+    const result = await legacy.signAndExecuteTransactionBlock({
+      transactionBlock: tx,
+      account,
+      chain: targetChain,
+      options: { showEffects: true },
+    });
+    return result.digest;
+  }
+
+  throw new Error("Connected wallet cannot sign and execute transactions.");
 }

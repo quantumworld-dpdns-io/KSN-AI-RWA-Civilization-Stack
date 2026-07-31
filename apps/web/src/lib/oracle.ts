@@ -1,10 +1,19 @@
-import type { AssetTelemetry, OracleCapabilities, ServiceHealth, SimulationResult, TelemetryHistory } from "./types";
 import { normalizeTelemetry, normalizeTelemetryList } from "./normalize";
+import type {
+  AssetTelemetry,
+  OracleCapabilities,
+  ServiceHealth,
+  SimulationResult,
+  TelemetryHistory,
+} from "./types";
 
 const DEFAULT_ORACLE_URL = "http://127.0.0.1:8787";
 
 export function resolveOracleBaseUrl(): string {
-  return (process.env.ORACLE_API_URL ?? process.env.ORACLE_URL ?? DEFAULT_ORACLE_URL).replace(/\/$/, "");
+  return (process.env.ORACLE_API_URL ?? process.env.ORACLE_URL ?? DEFAULT_ORACLE_URL).replace(
+    /\/$/,
+    ""
+  );
 }
 
 function oracleUpstreamMeta(baseUrl: string) {
@@ -57,13 +66,20 @@ export async function getHealth(): Promise<ServiceHealth & { debug?: Record<stri
   try {
     const [oracle, redis] = await Promise.all([
       request<{ status: string; signing?: ServiceHealth["signing"] }>("/health"),
-      request<{ status: string; redis?: string }>("/health/redis").catch((): { status: string; redis?: string } => ({
-        status: "error",
-      })),
+      request<{ status: string; redis?: string }>("/health/redis").catch(
+        (): { status: string; redis?: string } => ({
+          status: "error",
+        })
+      ),
     ]);
     return {
       oracle: oracle.status === "ok" || oracle.status === "degraded" ? "online" : "offline",
-      redis: redis.status === "ok" && redis.redis === "connected" ? "connected" : "offline",
+      redis:
+        redis.redis === "memory"
+          ? "memory"
+          : redis.status === "ok" && redis.redis === "connected"
+            ? "connected"
+            : "offline",
       signing: oracle.signing ?? "unknown",
       checkedAt,
       debug: meta,
@@ -90,14 +106,16 @@ export function getCapabilities(): Promise<OracleCapabilities> {
 
 export async function getTelemetryHistory(assetId: string, limit = 50): Promise<TelemetryHistory> {
   const history = await request<TelemetryHistory>(
-    `/telemetry/${encodeURIComponent(assetId)}/history?limit=${limit}`,
+    `/telemetry/${encodeURIComponent(assetId)}/history?limit=${limit}`
   );
   return { ...history, items: normalizeTelemetryList(history.items) };
 }
 
 export async function refreshTelemetry(assetId: string): Promise<AssetTelemetry> {
   return normalizeTelemetry(
-    await request<AssetTelemetry>(`/telemetry/${encodeURIComponent(assetId)}/refresh`, { method: "POST" }),
+    await request<AssetTelemetry>(`/telemetry/${encodeURIComponent(assetId)}/refresh`, {
+      method: "POST",
+    })
   );
 }
 

@@ -50,7 +50,8 @@ export interface AssetTelemetry {
 
 export interface ServiceHealth {
   oracle: "online" | "offline";
-  redis: "connected" | "offline" | "unknown";
+  // "memory" = oracle intentionally runs an in-process store (no Redis); healthy.
+  redis: "connected" | "memory" | "offline" | "unknown";
   signing: "configured" | "development-key" | "unknown";
   checkedAt: string;
   message?: string;

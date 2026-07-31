@@ -141,8 +141,12 @@ export function Dashboard({
             Oracle API <b>{health.oracle}</b>
           </div>
           <div className="status-row">
-            <span className={`status-dot ${health.redis}`} />
-            Redis cache <b>{health.redis}</b>
+            <span
+              className={`status-dot ${
+                health.redis === "connected" || health.redis === "memory" ? "online" : "offline"
+              }`}
+            />
+            Cache <b>{health.redis === "memory" ? "in-memory" : health.redis}</b>
           </div>
           <div className="status-row">
             <span
@@ -610,8 +614,7 @@ function Simulator() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const estimate = useMemo(() => (Math.log10(form.powerWatts) - 6) / 10, [form.powerWatts]);
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function submit() {
     setLoading(true);
     setError("");
     try {
@@ -631,7 +634,13 @@ function Simulator() {
   }
   return (
     <section className="sim-grid">
-      <form className="panel sim-form" onSubmit={submit}>
+      <form
+        className="panel sim-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
+      >
         <PanelTitle kicker="Input model" title="Energy-compute scenario" />
         <label>
           Power output (watts)
