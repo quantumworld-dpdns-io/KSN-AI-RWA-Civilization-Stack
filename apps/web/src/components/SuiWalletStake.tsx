@@ -12,6 +12,11 @@ import {
 
 const MIST_PER_SUI = 1_000_000_000;
 
+// Read optional fields defensively so the build never breaks if the committed
+// deployment JSON is regenerated without them (the value is a runtime optimization).
+const microgridInitialSharedVersion = (deployment as { microgridInitialSharedVersion?: number })
+  .microgridInitialSharedVersion;
+
 function shorten(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
@@ -59,7 +64,7 @@ export function SuiWalletStake() {
         account: connected.account,
         packageId: deployment.packageId,
         microgridId: deployment.microgridId,
-        microgridInitialSharedVersion: deployment.microgridInitialSharedVersion,
+        microgridInitialSharedVersion,
         amountMist,
         network: deployment.network as "testnet",
       });
