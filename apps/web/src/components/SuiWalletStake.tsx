@@ -73,7 +73,13 @@ export function SuiWalletStake() {
         msg: `Staked ${sui} SUI — received a StakeReceipt token. Tx ${digest.slice(0, 10)}…`,
       });
     } catch (e) {
-      setStatus({ kind: "err", msg: e instanceof Error ? e.message : "Stake failed." });
+      const raw = e instanceof Error ? e.message : "Stake failed.";
+      // A wallet that reports a password/lock error without prompting is locked
+      // or in a bad keyring state — surface an actionable hint, not just the raw text.
+      const msg = /password|locked|unlock|keyring/i.test(raw)
+        ? `${raw} — open the Slush extension and unlock it (enter your wallet password there), then retry. If it persists, re-add this account in Slush.`
+        : raw;
+      setStatus({ kind: "err", msg });
     } finally {
       setBusy(false);
     }
