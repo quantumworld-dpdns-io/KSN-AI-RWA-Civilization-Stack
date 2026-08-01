@@ -112,6 +112,11 @@ export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
     target: `${packageId}::microgrid::stake`,
     arguments: [microgridArg, coin],
   });
+  // Set an explicit gas budget so the wallet does NOT run its own gas-estimation
+  // dry-run before signing. That dry-run hits an RPC that can hang/fail (~28s),
+  // which some wallets surface as a misleading generic error. 0.05 SUI is ample
+  // for this single moveCall + coin split.
+  tx.setGasBudget(50_000_000);
 
   // Preferred: the current Wallet Standard feature.
   const modern = wallet.features[SIGN_EXEC] as
