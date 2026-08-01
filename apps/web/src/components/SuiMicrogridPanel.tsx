@@ -113,29 +113,6 @@ export function SuiMicrogridPanel() {
                 </a>{" "}
                 · read via GraphQL · {new Date(state.fetchedAt).toLocaleTimeString()}
               </small>
-              Sui's Object-Centric architecture. Every microgrid is an independent Sui Object. This
-              page renders the state of a specific Object and handles Web3 wallet interactions for
-              the user.Core Modules & Implementation Guidelines:A. Wallet & Identity
-              IntegrationDesign Goal: Authenticate the user and verify ownership of the required
-              Soulbound Token (SBT) credential to determine their eligibility to claim "Planetary
-              Dividends."Implementation: Utilize the ConnectButton component from @mysten/dapp-kit.
-              The frontend must query the RPC to check if the connected address holds the specific
-              SBT Object ID. Use the sui_getOwnedObjects RPC method and filter by your specific
-              struct type.B. Microgrid Object StateDesign Goal: Deserialize and display the dynamic
-              fields within the specific Sui Object.Data Fields:Object ID (Hyperlinked to a Sui
-              Explorer)Owner AddressReal-time Metrics: $P(t)$ and $H(t)$ (Data written to the chain
-              via backend IoT/simulators)Current Efficiency: $S(t)$ and a visual progress bar
-              indicating the gap to the AI's execution threshold.Frontend Implementation: Use the
-              useSuiClientQuery 'getObject', id: microgridObjectId, options: showContent: true hook
-              to fetch and map the Move struct data in real-time.C. Interaction ConsoleDesign Goal:
-              Provide the interface for users to execute state-changing
-              transactions.Features:Mint/Upgrade Microgrid: Submit a Programmable Transaction Block
-              (PTB) to modify the microgrid's attributes.Claim Dividend: Once the AI Agent unlocks
-              the dividend pool, users can execute a claim. The frontend must construct the
-              transaction and prompt the wallet signature via signAndExecuteTransactionBlock.Error
-              Handling: Implement strict UI feedback for failed transactions (e.g., Insufficient
-              Gas, Threshold Not Met, SBT Verification Failed). Robust error handling is a key
-              metric for completeness in hackathon evaluations.
             </div>
           </div>
         </>
@@ -151,6 +128,45 @@ export function SuiMicrogridPanel() {
         <span className={loading ? "spin" : ""}>↻</span>
         {loading ? "Reading" : "Refresh on-chain"}
       </button>
+
+      <MicrogridExplainer />
     </article>
+  );
+}
+
+/** Structured explanation of what this object is and how the reads/metrics map to Move state. */
+function MicrogridExplainer() {
+  return (
+    <div className="explainer">
+      <div className="capability-group">
+        <strong>What you're looking at</strong>
+        <p className="policy-description">
+          Each microgrid is an independent <b>Sui Object</b> (object-centric architecture). This
+          panel deserializes that Object's Move fields and shows them in real time. Power{" "}
+          <code>P(t)</code> and hashrate <code>H(t)</code> are written on-chain by the oracle/agent;
+          the efficiency score <code>S(t) = P / H</code> is the signal the autonomous agent acts on.
+        </p>
+      </div>
+
+      <div className="capability-group">
+        <strong>On-chain metrics</strong>
+        <ul className="explainer-list">
+          <li>
+            <b>Object ID</b> — hyperlinked above to the Sui explorer.
+          </li>
+          <li>
+            <b>Agency stage</b> — how autonomous the AI operator currently is for this asset.
+          </li>
+          <li>
+            <b>Treasury &amp; dividend pool</b> — SUI held by the microgrid and the pool queued for
+            planetary dividends.
+          </li>
+          <li>
+            <b>Issued shares / dividend round</b> — credential supply (capped at 100%) and the
+            current dividend epoch.
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 }

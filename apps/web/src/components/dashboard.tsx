@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ProjectExplainer } from "@/components/ProjectExplainer";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
@@ -197,6 +198,7 @@ export function Dashboard({
               <>
                 <SuiMicrogridPanel />
                 <SuiWalletStake />
+                <ProjectExplainer />
               </>
             )}
           </>
@@ -204,6 +206,7 @@ export function Dashboard({
           <>
             <SuiMicrogridPanel />
             <SuiWalletStake />
+            <ProjectExplainer />
           </>
         ) : (
           <div className="panel empty">No telemetry is available.</div>

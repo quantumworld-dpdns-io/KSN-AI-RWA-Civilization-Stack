@@ -53,3 +53,11 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 .wallet-choice:disabled { opacity: .6; cursor: default; }
 .wallet-choice img { border-radius: 5px; }
 .wallet-choice-dot { width: 14px; height: 14px; border-radius: 99px; background: var(--cyan); display: inline-block; }
+
+/* Project explainer + instruction sections (Sui microgrid view) */
+.explainer { margin-top: 18px; display: grid; gap: 4px; }
+.explainer .capability-group p { margin: 6px 0 0; }
+.explainer-list { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 7px; color: #98a2b0; font-size: 12px; line-height: 1.55; }
+.explainer-list li { padding-left: 2px; }
+.explainer-list b { color: #cfd6de; font-weight: 600; }
+.explainer code, .policy-description code { background: #12161d; border: 1px solid #232a33; border-radius: 5px; padding: 1px 5px; font-size: 11px; color: var(--cyan); }
