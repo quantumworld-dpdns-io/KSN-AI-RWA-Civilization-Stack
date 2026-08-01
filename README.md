@@ -182,6 +182,9 @@ The prototype suite is configured for Ethereum Sepolia publication. See [`packag
 
 ### `packages/sui-contracts` — live on Sui testnet
 
+> **Architecture diagram:** see [Sui agentic architecture](docs/ARCHITECTURE.md#sui-agentic-architecture-sui-overflow)
+> for how the Next.js frontend, the AI agent, and the shared Sui `Microgrid` Object interact.
+
 The Move microgrid (`ksn_microgrid`) is published to Sui **testnet** and the dashboard’s
 **Sui microgrid** view reads it live. The read path is production-ready:
 

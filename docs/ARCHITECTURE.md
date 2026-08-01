@@ -17,6 +17,43 @@ flowchart TD
 
 ---
 
+## Sui agentic architecture (Sui Overflow)
+
+How the Next.js frontend, the AI agent, and the Sui blockchain interact around the
+shared `Microgrid` Object (`0xe758…ed67`, package `0xc74c…6703` on testnet):
+
+```mermaid
+flowchart LR
+  subgraph Browser
+    U[User + Sui wallet\nSlush / Suiet] -->|sign stake PTB| MG
+    FE[Next.js dashboard\napps/web]
+  end
+  subgraph Server[Next.js server routes]
+    FE -->|/api/chain/sui| GQL[Sui GraphQL client\napps/web/src/lib/sui.ts]
+    FE -->|/api/oracle/*| ORA
+  end
+  subgraph Backend
+    ORA[Oracle\nFastify + HMAC signing\npackages/oracle-sim]
+    AG[AI Agent\nNode + own Ed25519 keypair\npackages/agent]
+  end
+  subgraph Sui[Sui testnet]
+    MG[(Microgrid — Shared Object\nUID + P·H·S·treasury·paused)]
+  end
+
+  GQL -->|read Object fields| MG
+  ORA -->|signed telemetry P and H| AG
+  AG -->|read Object state| MG
+  AG -->|"sign PTB: update_telemetry / deposit / (human-gated) dividend"| MG
+```
+
+Key Sui-native properties: the microgrid is a **shared `sui::object::UID`** (object-centric,
+not an Ethereum-style mapping); reads use the **GraphQL** interface (public JSON-RPC is
+deprecated); both a **user wallet** and the **agent's own keypair** mutate the Object by signing
+**Programmable Transaction Blocks**; irreversible edges (buyout, dividend) pass through an
+on-chain human gate and a `paused` kill-switch.
+
+---
+
 ## Components
 
 ### Web dashboard
