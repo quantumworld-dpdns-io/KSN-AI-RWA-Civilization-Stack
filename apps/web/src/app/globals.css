@@ -61,3 +61,11 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 .explainer-list li { padding-left: 2px; }
 .explainer-list b { color: #cfd6de; font-weight: 600; }
 .explainer code, .policy-description code { background: #12161d; border: 1px solid #232a33; border-radius: 5px; padding: 1px 5px; font-size: 11px; color: var(--cyan); }
+
+/* Wallet troubleshooting alert (Sui microgrid explainer) */
+.wallet-tip { margin-top: 14px; border: 1px solid rgba(240, 180, 80, .28); background: rgba(240, 180, 80, .06); border-radius: 9px; padding: 13px 15px; }
+.wallet-tip-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.wallet-tip-head strong { color: #eabf74; font-size: 12px; }
+.wallet-tip p { margin: 0 0 6px; }
+.wallet-tip ol { margin-top: 6px; }
+.wallet-tip a { color: var(--cyan); }

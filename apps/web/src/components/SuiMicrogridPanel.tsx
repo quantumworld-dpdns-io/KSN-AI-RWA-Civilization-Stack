@@ -167,6 +167,33 @@ function MicrogridExplainer() {
           </li>
         </ul>
       </div>
+
+      <div className="wallet-tip" role="note">
+        <div className="wallet-tip-head">
+          <span aria-hidden>⚠️</span>
+          <strong>Staking fails with “Incorrect password”?</strong>
+        </div>
+        <p className="policy-description">
+          That message comes from your <b>wallet</b>, not this app — it almost always means a{" "}
+          <b>zkLogin (Google / Apple) session in Slush has expired</b>, or the wallet is locked.
+          Signing a fresh transaction then fails even though your password is correct. Two ways to
+          fix it, both in the wallet:
+        </p>
+        <ol className="explainer-list">
+          <li>
+            In Slush, <b>sign out of the social (Google) account and sign back in</b> — this
+            refreshes the zkLogin session/proof. Then click <b>Stake SUI</b> again.
+          </li>
+          <li>
+            Or connect a <b>seed-phrase / private-key account</b> (import into Slush or Suiet, fund
+            it from the{" "}
+            <a href="https://faucet.sui.io" target="_blank" rel="noreferrer">
+              testnet faucet
+            </a>
+            ) — those never expire.
+          </li>
+        </ol>
+      </div>
     </div>
   );
 }
