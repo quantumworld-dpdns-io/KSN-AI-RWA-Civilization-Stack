@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aks/core": "workspace:*",
+    "@aks/oracle-sim": "workspace:*",
     "@mysten/sui": "^1.28.2",
     "@mysten/wallet-standard": "^0.14.0",
     "next": "^16.1.6",
