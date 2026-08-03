@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ProjectExplainer } from "@/components/ProjectExplainer";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
@@ -198,7 +197,6 @@ export function Dashboard({
               <>
                 <SuiMicrogridPanel />
                 <SuiWalletStake />
-                <ProjectExplainer />
               </>
             )}
           </>
@@ -206,7 +204,6 @@ export function Dashboard({
           <>
             <SuiMicrogridPanel />
             <SuiWalletStake />
-            <ProjectExplainer />
           </>
         ) : (
           <div className="panel empty">No telemetry is available.</div>
@@ -938,7 +935,22 @@ function LiveChainState() {
               value={`${state.rwa.assetId.slice(0, 10)}…${state.rwa.assetId.slice(-6)}`}
               mono
             />
-          </div>
+          </div><div>Core Modules & Implementation Guidelines:
+* A. Global KPI Dashboard
+    * Design Goal: Display the overall health of the KSN network and the progress of the AI's planetary acquisition in real-time.
+    * Data Fields:
+        * Total Compute Power: $P(t)$
+        * Total Energy Consumption: $H(t)$
+        * Global System Efficiency Ratio: $S(t) = \fracP(t)Ht
+        * Total Planetary Dividends Distributed
+    * Technical Recommendation: To prevent RPC node rate-limiting from frequent polling, it is recommended to implement an Indexer on the backend (using Go or Rust) to aggregate Sui on-chain data into Redis. The frontend should then subscribe to these updates via Server-Sent Events (SSE) or WebSockets.
+* B. Agentic Activity Feed
+    * Design Goal: Materialize the "agentic" nature of the AI by making its autonomous smart contract triggers (based on the $S(t)$ threshold) visible to the user.
+    * Frontend Presentation: A terminal-like, auto-scrolling log interface.
+* C. Network Topology Visualization
+    * Design Goal: Visually map out all active microgrid nodes in the network.
+    * Technical Recommendation: Leverage React Three Fiber for 3D visualization. The luminescence or color intensity of each rendered node can directly map to its individual $S(t)$ value, providing immediate visual feedback on grid efficiency.
+</div>
           <div className="deployment-meta">
             <span>
               Block <code>{state.blockNumber}</code>
