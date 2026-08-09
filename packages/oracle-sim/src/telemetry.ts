@@ -152,6 +152,9 @@ const DEV_SIGNING_KEY = "aks-local-development-signing-key";
 
 function signingSecret(): string {
   const secret = process.env.ORACLE_SIGNING_SECRET;
+  // #region agent log
+  fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'A',location:'telemetry.ts:signingSecret',message:'signingSecret resolution',data:{hasSecret:Boolean(secret&&secret.length>0),secretLen:secret?.length??0,nodeEnv:process.env.NODE_ENV??null,vitest:Boolean(process.env.VITEST)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if (secret && secret.length > 0) return secret;
   // Fail closed: the well-known development key is a public constant, so signing
   // or verifying with it lets anyone forge telemetry. Only tolerate it inside
@@ -159,6 +162,9 @@ function signingSecret(): string {
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
     return DEV_SIGNING_KEY;
   }
+  // #region agent log
+  fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'A',location:'telemetry.ts:signingSecret:throw',message:'throwing missing ORACLE_SIGNING_SECRET',data:{nodeEnv:process.env.NODE_ENV??null},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   throw new Error(
     "ORACLE_SIGNING_SECRET is required: refusing to sign/verify telemetry with the public development key.",
   );

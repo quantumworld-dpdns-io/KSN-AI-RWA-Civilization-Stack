@@ -80,6 +80,9 @@ export function LandingPage() {
         </Link>
         <div className="landing-nav-actions">
           <PillBadge variant="live">Oracle</PillBadge>
+          <Link href="/europe" className="landing-nav-cta">
+            EU Vision
+          </Link>
           <Link href="/console" className="landing-nav-cta">
             Console
           </Link>

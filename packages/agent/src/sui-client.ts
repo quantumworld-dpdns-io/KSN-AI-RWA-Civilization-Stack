@@ -80,17 +80,27 @@ export class SuiMicrogridClient {
     }
 
     let payload: AssetTelemetry;
+    const telemetryUrl = `${this.config.oracleUrl}/telemetry/${this.config.assetId}`;
     try {
-      const response = await fetch(`${this.config.oracleUrl}/telemetry/${this.config.assetId}`);
+      const response = await fetch(telemetryUrl);
+      // #region agent log
+      fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'C',location:'sui-client.ts:fetchTelemetry',message:'agent oracle fetch result',data:{telemetryUrl,status:response.status,ok:response.ok,assetId:this.config.assetId,hasAgentSigningSecret:Boolean(process.env.ORACLE_SIGNING_SECRET)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (!response.ok) {
         return untrusted(`oracle responded ${response.status}`);
       }
       payload = (await response.json()) as AssetTelemetry;
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'C',location:'sui-client.ts:fetchTelemetry:catch',message:'agent oracle fetch failed',data:{telemetryUrl,err:(error as Error).message},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       return untrusted(`oracle fetch failed: ${(error as Error).message}`);
     }
 
     if (!verifyTelemetrySignature(payload)) {
+      // #region agent log
+      fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'E',location:'sui-client.ts:fetchTelemetry:verify',message:'signature verify failed',data:{hasAgentSigningSecret:Boolean(process.env.ORACLE_SIGNING_SECRET),payloadHasSig:Boolean(payload.telemetrySignature)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       return untrusted("telemetry signature verification failed");
     }
 

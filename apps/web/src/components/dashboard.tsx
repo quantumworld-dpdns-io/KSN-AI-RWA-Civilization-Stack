@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PillBadge, TerminalBlink } from "@dennislee928/nothingx-react-components";
+import { ArchitectureDiagram } from "@/components/ArchitectureDiagram";
 import { ConsoleNothingStrip } from "@/components/ConsoleNothingStrip";
+import { EuropeVisionPanel } from "@/components/EuropeVisionPanel";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
@@ -23,7 +25,7 @@ const usd = new Intl.NumberFormat("en", {
   maximumFractionDigits: 2,
 });
 
-type View = "overview" | "assets" | "oracle" | "simulator" | "contracts" | "sui";
+type View = "overview" | "assets" | "oracle" | "simulator" | "contracts" | "sui" | "europe";
 
 export function Dashboard({
   initialTelemetry,
@@ -122,6 +124,9 @@ export function Dashboard({
           <NavButton active={view === "sui"} onClick={() => setView("sui")} icon="◎">
             Sui microgrid
           </NavButton>
+          <NavButton active={view === "europe"} onClick={() => setView("europe")} icon="◈">
+            EU vision
+          </NavButton>
           <NavButton active={view === "assets"} onClick={() => setView("assets")} icon="◇">
             Asset network
           </NavButton>
@@ -134,6 +139,10 @@ export function Dashboard({
           <NavButton active={view === "contracts"} onClick={() => setView("contracts")} icon="⬡">
             Sepolia contracts
           </NavButton>
+          <a className="nav-ext-link" href="/europe" target="_blank" rel="noreferrer">
+            <span>↗</span>
+            Full EU page
+          </a>
         </nav>
         <div className="sidebar-status">
           <div className="status-row">
@@ -211,12 +220,15 @@ export function Dashboard({
                 <SuiWalletStake />
               </>
             )}
+            {view === "europe" && <EuropeVisionPanel />}
           </>
         ) : view === "sui" ? (
           <>
             <SuiMicrogridPanel />
             <SuiWalletStake />
           </>
+        ) : view === "europe" ? (
+          <EuropeVisionPanel />
         ) : (
           <div className="panel empty">No telemetry is available.</div>
         )}
@@ -232,6 +244,7 @@ const titles: Record<View, string> = {
   simulator: "KSN scenario simulator",
   contracts: "Sepolia settlement contracts",
   sui: "Sui Agentic Microgrid",
+  europe: "European market vision",
 };
 
 function Overview({
@@ -248,6 +261,8 @@ function Overview({
     telemetry.reduce((sum, item) => sum + item.oracleConfidence, 0) / telemetry.length;
   return (
     <>
+      <ArchitectureDiagram />
+
       <ConsoleNothingStrip
         selected={selected}
         totalPowerWatts={totalPower}

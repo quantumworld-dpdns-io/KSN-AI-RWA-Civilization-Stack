@@ -49,7 +49,7 @@ export async function connectSuiWallet(wallet: Wallet): Promise<WalletAccount | 
   return res.accounts[0] ?? wallet.accounts[0] ?? null;
 }
 
-export interface StakeParams {
+export interface MicrogridCallParams {
   wallet: Wallet;
   account: WalletAccount;
   packageId: string;
@@ -64,61 +64,55 @@ export interface StakeParams {
   network?: "testnet" | "mainnet" | "devnet";
 }
 
-/**
- * Build and submit a `microgrid::stake` transaction through the connected
- * wallet: split `amountMist` off the gas coin and stake it, receiving a
- * StakeReceipt token. Returns the transaction digest.
- *
- * Handles the two common failure modes: (1) the connected account being on the
- * wrong Sui network (the package/object are testnet-only — Slush defaults to
- * mainnet), and (2) wallets that only expose the legacy
- * `signAndExecuteTransactionBlock` feature.
- */
-export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
-  const {
-    wallet,
-    account,
-    packageId,
-    microgridId,
-    amountMist,
-    microgridInitialSharedVersion,
-    network = "testnet",
-  } = params;
-  const targetChain = `sui:${network}` as const;
+export type StakeParams = MicrogridCallParams;
 
-  // Guard the network mismatch up front with a clear, actionable message.
+/**
+ * Guard the common "wallet is on the wrong network" failure up front with an
+ * actionable message — the package and object are testnet-only, while wallets
+ * such as Slush default to mainnet.
+ */
+function assertChain(account: WalletAccount, network: string): `sui:${string}` {
+  const targetChain = `sui:${network}` as const;
   if (account.chains?.length && !account.chains.includes(targetChain)) {
     throw new Error(
       `Wallet account is on ${account.chains.join(", ")}, but the microgrid is on ${targetChain}. ` +
         `Switch your wallet to Sui ${network} and reconnect.`
     );
   }
+  return targetChain;
+}
 
-  const tx = new Transaction();
-  tx.setSenderIfNotSet(account.address);
-  const [coin] = tx.splitCoins(tx.gas, [amountMist]);
-  // Explicit shared-object ref when we know the initial version; else fall back
-  // to tx.object() (which requires the wallet to resolve the object itself over
-  // the deprecated JSON-RPC — a common execute failure).
-  const microgridArg =
-    microgridInitialSharedVersion != null
-      ? tx.sharedObjectRef({
-          objectId: microgridId,
-          initialSharedVersion: Number(microgridInitialSharedVersion),
-          mutable: true,
-        })
-      : tx.object(microgridId);
-  tx.moveCall({
-    target: `${packageId}::microgrid::stake`,
-    arguments: [microgridArg, coin],
-  });
-  // Set an explicit gas budget so the wallet does NOT run its own gas-estimation
-  // dry-run before signing. That dry-run hits an RPC that can hang/fail (~28s),
-  // which some wallets surface as a misleading generic error. 0.05 SUI is ample
-  // for this single moveCall + coin split.
-  tx.setGasBudget(50_000_000);
+/**
+ * Reference the shared Microgrid object. With a known initialSharedVersion we
+ * pass an explicit shared-object ref; otherwise we fall back to tx.object(),
+ * which requires the wallet to resolve the object itself over the deprecated
+ * JSON-RPC (a common execute failure).
+ */
+function microgridArgument(
+  tx: Transaction,
+  microgridId: string,
+  initialSharedVersion?: number | string
+) {
+  return initialSharedVersion != null
+    ? tx.sharedObjectRef({
+        objectId: microgridId,
+        initialSharedVersion: Number(initialSharedVersion),
+        mutable: true,
+      })
+    : tx.object(microgridId);
+}
 
-  // Preferred: the current Wallet Standard feature.
+/**
+ * Submit a built transaction through the connected wallet, preferring the
+ * current Wallet Standard feature and falling back to the legacy one exposed by
+ * older wallet builds. Returns the transaction digest.
+ */
+async function signAndExecute(
+  wallet: Wallet,
+  account: WalletAccount,
+  tx: Transaction,
+  targetChain: `sui:${string}`
+): Promise<string> {
   const modern = wallet.features[SIGN_EXEC] as
     | {
         signAndExecuteTransaction: (input: {
@@ -137,7 +131,6 @@ export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
     return result.digest;
   }
 
-  // Fallback: legacy feature exposed by older wallet builds.
   const legacy = wallet.features[SIGN_EXEC_BLOCK] as
     | {
         signAndExecuteTransactionBlock: (input: {
@@ -159,4 +152,61 @@ export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
   }
 
   throw new Error("Connected wallet cannot sign and execute transactions.");
+}
+
+/**
+ * Build and submit a single-moveCall PTB that splits `amountMist` off the gas
+ * coin and passes it to `microgrid::<fn>(microgrid, coin)`. Both public,
+ * permissionless entry points (`stake` and `upgrade_cooling`) have this shape.
+ */
+async function payToMicrogrid(
+  fn: "stake" | "upgrade_cooling",
+  params: MicrogridCallParams
+): Promise<string> {
+  const {
+    wallet,
+    account,
+    packageId,
+    microgridId,
+    amountMist,
+    microgridInitialSharedVersion,
+    network = "testnet",
+  } = params;
+  const targetChain = assertChain(account, network);
+
+  const tx = new Transaction();
+  tx.setSenderIfNotSet(account.address);
+  const [coin] = tx.splitCoins(tx.gas, [amountMist]);
+  tx.moveCall({
+    target: `${packageId}::microgrid::${fn}`,
+    arguments: [microgridArgument(tx, microgridId, microgridInitialSharedVersion), coin],
+  });
+  // Set an explicit gas budget so the wallet does NOT run its own gas-estimation
+  // dry-run before signing. That dry-run hits an RPC that can hang/fail (~28s),
+  // which some wallets surface as a misleading generic error. 0.05 SUI is ample
+  // for this single moveCall + coin split.
+  tx.setGasBudget(50_000_000);
+
+  return signAndExecute(wallet, account, tx, targetChain);
+}
+
+/**
+ * `microgrid::stake` — stake `amountMist` into the treasury and receive a
+ * StakeReceipt token. Returns the transaction digest.
+ */
+export async function stakeToMicrogrid(params: StakeParams): Promise<string> {
+  return payToMicrogrid("stake", params);
+}
+
+/**
+ * `microgrid::upgrade_cooling` — the Datacenter Builder action. Pays for one
+ * cooling tier, which cuts the microgrid's power draw P(t) by 20% and therefore
+ * raises its efficiency score E(t) toward (and past) the dividend threshold of
+ * 85. Permissionless: any connected wallet can build.
+ *
+ * Pass exactly COOLING_UPGRADE_PRICE_MIST as `amountMist` — the contract does
+ * not refund surplus, it just banks it in the treasury.
+ */
+export async function upgradeCooling(params: MicrogridCallParams): Promise<string> {
+  return payToMicrogrid("upgrade_cooling", params);
 }

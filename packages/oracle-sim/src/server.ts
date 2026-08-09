@@ -64,6 +64,9 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     if (error instanceof z.ZodError) {
       return reply.code(400).send({ error: "validation_error", issues: error.issues });
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'A',location:'server.ts:errorHandler',message:'oracle internal_error 500',data:{errMsg:error instanceof Error?error.message:String(error),url:_request.url},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     app.log.error(error);
     return reply.code(500).send({ error: "internal_error" });
   });
@@ -220,6 +223,9 @@ async function redisHealth(store: TelemetryStore): Promise<boolean> {
 
 export async function start(): Promise<void> {
   validateRuntimeConfiguration();
+  // #region agent log
+  fetch('http://127.0.0.1:7887/ingest/0ca80672-2cb4-4338-821b-09fb9789ab7f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'3e72a4'},body:JSON.stringify({sessionId:'3e72a4',runId:'pre-fix',hypothesisId:'B',location:'server.ts:start',message:'oracle start config',data:{nodeEnv:process.env.NODE_ENV??null,hasSigningSecret:Boolean(process.env.ORACLE_SIGNING_SECRET),store:process.env.ORACLE_STORE??'redis-default',port:Number(process.env.ORACLE_PORT??8787)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const app = buildApp();
   const port = Number(process.env.ORACLE_PORT ?? 8787);
   await app.listen({ port, host: "0.0.0.0" });

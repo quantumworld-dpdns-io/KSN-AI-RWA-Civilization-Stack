@@ -1,4 +1,5 @@
 import deployment from "@/generated/sui.testnet.json";
+import { efficiencyScore } from "@/lib/efficiency";
 
 // Sui public fullnodes deprecated JSON-RPC (sui_getObject) — production reads
 // must use the GraphQL endpoint. This URL is the GraphQL service, overridable
@@ -46,6 +47,8 @@ interface MicrogridJson {
   paused?: boolean;
   total_issued_bps?: string;
   dividend_round?: string;
+  cooling_tier?: number;
+  dividend_allowance?: string;
 }
 
 const OBJECT_QUERY =
@@ -70,6 +73,18 @@ export interface SuiMicrogridState {
   sovereignOwner: string | null;
   totalIssuedBps: number;
   dividendRound: number;
+  /// Thresholds the Move object carries, surfaced so the Datacenter Builder can
+  /// show how far the microgrid is from dividend eligibility.
+  dividendThreshold: string;
+  buyoutThreshold: string;
+  /// Cooling upgrades installed so far, and the human-authorized budget the
+  /// agent may distribute autonomously. Absent (0) on objects predating them.
+  coolingTier: number;
+  dividendAllowance: string;
+  /// E(t) on a 0-100 scale — see lib/efficiency.ts. Mirrors the on-chain
+  /// `efficiency_score_bps`; >= 85 exactly when the dividend gate is open.
+  efficiency: number;
+  dividendEligible: boolean;
 }
 
 export async function readSuiMicrogridState(): Promise<SuiMicrogridState> {
@@ -107,6 +122,8 @@ export async function readSuiMicrogridState(): Promise<SuiMicrogridState> {
   }
 
   const stage = fields.agency_stage ?? 0;
+  const ksnScore = fields.ksn_score ?? "0";
+  const dividendThreshold = fields.dividend_threshold ?? "0";
   return {
     ok: true,
     network: deployment.network,
@@ -119,12 +136,21 @@ export async function readSuiMicrogridState(): Promise<SuiMicrogridState> {
     agencyLabel: AGENCY_LABELS[stage] ?? String(stage),
     powerWatts: fields.power_watts ?? "0",
     hashrate: fields.hashrate ?? "0",
-    ksnScore: fields.ksn_score ?? "0",
+    ksnScore,
     treasuryMist: fields.treasury_balance ?? "0",
     dividendPoolMist: fields.dividend_pool ?? "0",
     paused: Boolean(fields.paused),
     sovereignOwner: fields.sovereign_owner ?? null,
     totalIssuedBps: Number(fields.total_issued_bps ?? 0),
     dividendRound: Number(fields.dividend_round ?? 0),
+    dividendThreshold,
+    buyoutThreshold: fields.buyout_threshold ?? "0",
+    coolingTier: Number(fields.cooling_tier ?? 0),
+    dividendAllowance: fields.dividend_allowance ?? "0",
+    efficiency: efficiencyScore(ksnScore, dividendThreshold),
+    // The Move gate is `ksn_score <= dividend_threshold`, which is equivalent to
+    // E >= 85 by the definition in lib/efficiency.ts. Compare on the raw values
+    // so rounding in the display score can never disagree with the chain.
+    dividendEligible: BigInt(ksnScore) <= BigInt(dividendThreshold),
   };
 }

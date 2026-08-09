@@ -10,6 +10,21 @@ use sui::sui::SUI;
 
 const KSN_SCALE: u64 = 1_000_000_000_000_000_000;
 
+/// Efficiency score is reported in basis points (10_000 = 100.00).
+const EFFICIENCY_SCALE_BPS: u64 = 10_000;
+/// The efficiency score at which the microgrid becomes dividend-eligible.
+/// `efficiency_score_bps` is defined so that E >= 8_500 (85.00) holds exactly
+/// when `ksn_score <= dividend_threshold` — the on-chain dividend condition.
+/// The narrated "critical threshold of 85" and the contract gate are one fact.
+const EFFICIENCY_THRESHOLD_BPS: u64 = 8_500;
+
+/// Price of one cooling upgrade tier, in MIST (0.01 SUI).
+const COOLING_UPGRADE_PRICE_MIST: u64 = 10_000_000;
+/// Each cooling tier cuts the microgrid's power draw P(t) by 20%.
+const COOLING_STEP_BPS: u64 = 2_000;
+/// Upper bound on cooling tiers, so P(t) can never be driven to zero.
+const MAX_COOLING_TIER: u8 = 5;
+
 const EInvalidTelemetry: u64 = 3;
 const EInsufficientTreasury: u64 = 4;
 const EDividendThresholdNotMet: u64 = 5;
@@ -23,6 +38,9 @@ const EPaused: u64 = 12;
 const EShareCapExceeded: u64 = 13;
 const EAlreadyClaimed: u64 = 14;
 const EZeroStake: u64 = 15;
+const EInsufficientPayment: u64 = 16;
+const EMaxCoolingTier: u64 = 17;
+const EAllowanceExceeded: u64 = 18;
 
 public struct Microgrid has key {
     id: UID,
@@ -46,6 +64,15 @@ public struct Microgrid has key {
     /// Monotonic dividend round, bumped each distribution. A credential may claim
     /// each round at most once.
     dividend_round: u64,
+    /// Number of cooling upgrades applied. Each tier cuts P(t) by COOLING_STEP_BPS,
+    /// which lowers S(t)=P/H and therefore raises the efficiency score.
+    cooling_tier: u8,
+    /// Human-set spending ceiling for autonomous dividends. The AdminCap holder
+    /// arms the agent once with a budget; `distribute_planetary_dividend_auto`
+    /// then spends inside that budget without a per-transaction human co-signature,
+    /// decrementing it each time. Zero (the default) means the agent may not
+    /// distribute autonomously at all.
+    dividend_allowance: u64,
 }
 
 public struct AdminCap has key, store {
@@ -102,6 +129,28 @@ public struct Staked has copy, drop {
     amount: u64,
 }
 
+/// Proof that a builder paid for a cooling upgrade tier on this microgrid.
+public struct CoolingUpgradeReceipt has key, store {
+    id: UID,
+    microgrid_id: ID,
+    tier: u8,
+    upgrader: address,
+}
+
+public struct CoolingUpgraded has copy, drop {
+    microgrid_id: ID,
+    upgrader: address,
+    tier: u8,
+    power_watts: u64,
+    ksn_score: u64,
+    efficiency_score_bps: u64,
+}
+
+public struct DividendAllowanceSet has copy, drop {
+    microgrid_id: ID,
+    allowance: u64,
+}
+
 const STAGE_AI_MANAGED: u8 = 1;
 const STAGE_AI_CO_OWNED: u8 = 2;
 const STAGE_SOVEREIGN_AI_ASSET: u8 = 3;
@@ -142,6 +191,8 @@ public fun create_microgrid(
         paused: false,
         total_issued_bps: 0,
         dividend_round: 0,
+        cooling_tier: 0,
+        dividend_allowance: 0,
     };
     transfer::share_object(microgrid);
 }
@@ -255,6 +306,48 @@ public fun distribute_planetary_dividend(
     assert!(!microgrid.paused, EPaused);
     agent_cap::assert_agent(cap, ctx);
     agent_cap::assert_microgrid(cap, object::id(microgrid));
+    apply_dividend(microgrid, amount);
+}
+
+/// Human ceiling for autonomous dividends. The AdminCap holder arms (or disarms,
+/// by passing 0) the agent with a total budget it may distribute on its own.
+/// This is a *bounded* delegation, not a removal of human control: the ceiling is
+/// set by a human, spent down monotonically, and `set_paused` still hard-stops
+/// every agent action.
+public fun set_dividend_allowance(
+    microgrid: &mut Microgrid,
+    _admin: &AdminCap,
+    amount: u64,
+) {
+    microgrid.dividend_allowance = amount;
+    event::emit(DividendAllowanceSet {
+        microgrid_id: object::id(microgrid),
+        allowance: amount,
+    });
+}
+
+/// Autonomous dividend distribution: the agent acts alone, but only inside the
+/// allowance a human pre-authorized via `set_dividend_allowance`. Every other
+/// guard from the AdminCap path still applies (kill-switch, agent capability,
+/// microgrid binding, efficiency threshold, treasury sufficiency).
+public fun distribute_planetary_dividend_auto(
+    microgrid: &mut Microgrid,
+    cap: &AgentCap,
+    amount: u64,
+    ctx: &TxContext,
+) {
+    assert!(!microgrid.paused, EPaused);
+    agent_cap::assert_agent(cap, ctx);
+    agent_cap::assert_microgrid(cap, object::id(microgrid));
+    assert!(amount <= microgrid.dividend_allowance, EAllowanceExceeded);
+
+    microgrid.dividend_allowance = microgrid.dividend_allowance - amount;
+    apply_dividend(microgrid, amount);
+}
+
+/// Shared body of both dividend paths: enforces the efficiency threshold and
+/// treasury sufficiency, then moves capital and opens a new claim round.
+fun apply_dividend(microgrid: &mut Microgrid, amount: u64) {
     assert!(microgrid.ksn_score <= microgrid.dividend_threshold, EDividendThresholdNotMet);
     assert!(balance::value(&microgrid.treasury_balance) >= amount, EInsufficientTreasury);
 
@@ -357,6 +450,99 @@ public fun stake(
 
 public fun stake_receipt_amount(receipt: &StakeReceipt): u64 {
     receipt.amount_mist
+}
+
+/// Permissionless infrastructure upgrade: anyone can pay to install one more
+/// tier of cooling. Better cooling cuts the microgrid's power draw P(t) by
+/// COOLING_STEP_BPS, which lowers S(t) = P(t)/H(t) and therefore raises the
+/// efficiency score toward (and past) the dividend threshold.
+///
+/// The whole `payment` coin joins the treasury — callers should split exactly
+/// `COOLING_UPGRADE_PRICE_MIST` off their gas coin rather than passing a larger
+/// coin, since the surplus is not refunded. Honors the kill-switch.
+#[allow(lint(self_transfer))]
+public fun upgrade_cooling(
+    microgrid: &mut Microgrid,
+    payment: Coin<SUI>,
+    ctx: &mut TxContext,
+) {
+    assert!(!microgrid.paused, EPaused);
+    assert!(microgrid.cooling_tier < MAX_COOLING_TIER, EMaxCoolingTier);
+    assert!(coin::value(&payment) >= COOLING_UPGRADE_PRICE_MIST, EInsufficientPayment);
+
+    balance::join(&mut microgrid.treasury_balance, coin::into_balance(payment));
+
+    microgrid.power_watts =
+        microgrid.power_watts * (EFFICIENCY_SCALE_BPS - COOLING_STEP_BPS) / EFFICIENCY_SCALE_BPS;
+    microgrid.cooling_tier = microgrid.cooling_tier + 1;
+    microgrid.ksn_score = compute_ksn_score(microgrid.power_watts, microgrid.hashrate);
+
+    let receipt = CoolingUpgradeReceipt {
+        id: object::new(ctx),
+        microgrid_id: object::id(microgrid),
+        tier: microgrid.cooling_tier,
+        upgrader: ctx.sender(),
+    };
+    transfer::public_transfer(receipt, ctx.sender());
+
+    event::emit(CoolingUpgraded {
+        microgrid_id: object::id(microgrid),
+        upgrader: ctx.sender(),
+        tier: microgrid.cooling_tier,
+        power_watts: microgrid.power_watts,
+        ksn_score: microgrid.ksn_score,
+        efficiency_score_bps: efficiency_score_bps(microgrid),
+    });
+}
+
+public fun cooling_upgrade_receipt_tier(receipt: &CoolingUpgradeReceipt): u8 {
+    receipt.tier
+}
+
+public fun cooling_upgrade_price_mist(): u64 {
+    COOLING_UPGRADE_PRICE_MIST
+}
+
+public fun max_cooling_tier(): u8 {
+    MAX_COOLING_TIER
+}
+
+public fun efficiency_threshold_bps(): u64 {
+    EFFICIENCY_THRESHOLD_BPS
+}
+
+/// Human-facing efficiency score in basis points (10_000 = 100.00), derived from
+/// the raw cost metric S(t) = P(t)/H(t), where lower S(t) is better:
+///
+///     E = min(10_000, 8_500 * dividend_threshold / ksn_score)
+///
+/// The scaling is chosen so that `E >= 8_500` (i.e. "85") holds exactly when
+/// `ksn_score <= dividend_threshold`, the on-chain dividend gate. Crossing 85 and
+/// becoming dividend-eligible are therefore the same event, by construction.
+public fun efficiency_score_bps(microgrid: &Microgrid): u64 {
+    if (microgrid.ksn_score == 0) {
+        return EFFICIENCY_SCALE_BPS
+    };
+    let raw =
+        (EFFICIENCY_THRESHOLD_BPS as u128) * (microgrid.dividend_threshold as u128)
+            / (microgrid.ksn_score as u128);
+    if (raw > (EFFICIENCY_SCALE_BPS as u128)) {
+        EFFICIENCY_SCALE_BPS
+    } else {
+        raw as u64
+    }
+}
+
+public fun cooling_tier(microgrid: &Microgrid): u8 {
+    microgrid.cooling_tier
+}
+
+public fun dividend_allowance(microgrid: &Microgrid): u64 {
+    microgrid.dividend_allowance
+}
+
+public fun dividend_threshold(microgrid: &Microgrid): u64 {
+    microgrid.dividend_threshold
 }
 
 public fun compute_ksn_score(power_watts: u64, hashrate: u64): u64 {

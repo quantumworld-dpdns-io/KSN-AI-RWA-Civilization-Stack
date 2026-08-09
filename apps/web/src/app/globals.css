@@ -80,3 +80,69 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 .nothing-strip-ksn strong { font-size: 22px; letter-spacing: -.03em; color: #f2f5f7; }
 @media (max-width: 1080px) { .nothing-strip-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 720px) { .nothing-strip-grid { grid-template-columns: 1fr; } }
+
+/* Architecture mermaid (overview) */
+.architecture-panel { margin-bottom: 14px; }
+.architecture-blurb { color: #8993a1; font-size: 12px; line-height: 1.6; margin: -6px 0 16px; max-width: 72ch; }
+.architecture-blurb code { color: var(--cyan); }
+.architecture-mermaid { overflow-x: auto; border: 1px solid #1f262f; border-radius: 10px; background: #0a0d12; padding: 12px; min-height: 220px; }
+.architecture-mermaid svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+.architecture-notes { margin: 14px 0 0; padding-left: 18px; display: grid; gap: 6px; color: #7d8794; font-size: 11px; line-height: 1.5; }
+.architecture-notes code { color: #a7b3bf; }
+
+/* Sidebar external link */
+.nav-ext-link { display: flex; gap: 12px; align-items: center; border: 1px dashed #2a333d; border-radius: 8px; padding: 10px 12px; color: #8c96a6; text-decoration: none; font-size: 12px; font-weight: 600; margin-top: 4px; }
+.nav-ext-link:hover { color: var(--text); border-color: #3d4a57; background: #151922; }
+.nav-ext-link span { font-size: 14px; width: 18px; text-align: center; }
+
+/* Europe vision */
+.europe-page { display: grid; gap: 12px; }
+.europe-banner { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, .7fr); gap: 18px; align-items: center; }
+.europe-banner-title { margin: 0 0 8px; font-size: 22px; letter-spacing: -.02em; }
+.europe-banner-copy { margin: 0; color: #8b95a2; font-size: 13px; line-height: 1.65; }
+.europe-banner-copy strong { color: #d5dde4; font-weight: 600; }
+.europe-banner-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.europe-banner-kpis > div { border: 1px solid #252c35; border-radius: 9px; padding: 12px; background: #0c1015; }
+.europe-banner-kpis small { display: block; color: #697382; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.europe-banner-kpis strong { display: block; margin-top: 8px; font-size: 18px; }
+.europe-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .75fr); gap: 12px; }
+.europe-map { width: 100%; height: auto; border-radius: 8px; }
+.europe-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; color: #84909d; font-size: 11px; }
+.europe-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 99px; margin-right: 6px; vertical-align: middle; }
+.europe-side { display: grid; gap: 12px; align-content: start; }
+.europe-hub-note { color: #6f7a88; font-size: 11px; line-height: 1.55; margin: 14px 0 0; }
+.europe-zk-list { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
+.europe-zk-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; border: 1px solid #232a33; background: #0c1015; border-radius: 8px; padding: 10px; color: inherit; text-align: left; cursor: pointer; }
+.europe-zk-row:hover, .europe-zk-row.active { border-color: rgba(105,231,213,.35); background: rgba(105,231,213,.04); }
+.europe-zk-row strong { display: block; font-size: 12px; }
+.europe-zk-row small { color: #6f7a88; font-size: 10px; }
+.europe-zk-row code { color: #8e99a8; font-size: 10px; }
+.europe-zk-dot { width: 8px; height: 8px; border-radius: 99px; background: #737b89; }
+.europe-zk-dot.attested { background: var(--cyan); box-shadow: 0 0 8px rgba(105,231,213,.55); }
+.europe-zk-dot.pending { background: #eabf74; }
+.europe-zk-dot.draft { background: #5a6573; }
+.europe-markets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.europe-market-kicker { display: block; color: #5e6876; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; }
+.europe-markets h3 { margin: 0 0 8px; font-size: 14px; }
+.europe-markets p { margin: 0; color: #84909d; font-size: 12px; line-height: 1.6; }
+.europe-zk-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.europe-zk-flow > div { border: 1px solid #232a33; border-radius: 8px; padding: 12px; background: #0c1015; }
+.europe-zk-flow strong { display: block; font-size: 12px; margin-bottom: 6px; }
+.europe-zk-flow p { margin: 0; color: #7a8491; font-size: 11px; line-height: 1.5; }
+.europe-zk-flow code { color: var(--cyan); }
+.europe-route { min-height: 100vh; }
+.europe-route-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px clamp(16px, 4vw, 42px); border-bottom: 1px solid var(--line); background: rgba(8,10,14,.92); position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
+.europe-route-brand { display: grid; gap: 2px; text-decoration: none; color: inherit; }
+.europe-route-brand strong { letter-spacing: .14em; font-size: 16px; color: var(--cyan); }
+.europe-route-brand span { color: var(--muted); font-size: 11px; }
+.europe-route-nav nav { display: flex; gap: 16px; }
+.europe-route-nav a { color: #9aa4b0; text-decoration: none; font-size: 13px; font-weight: 600; }
+.europe-route-nav a:hover { color: var(--text); }
+.europe-route-main { width: min(1420px, 100%); margin: 0 auto; padding: 28px clamp(16px, 3vw, 42px) 70px; }
+@media (max-width: 1080px) {
+  .europe-banner, .europe-grid { grid-template-columns: 1fr; }
+  .europe-markets, .europe-zk-flow { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .europe-banner-kpis, .europe-markets, .europe-zk-flow { grid-template-columns: 1fr; }
+}

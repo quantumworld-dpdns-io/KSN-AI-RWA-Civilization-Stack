@@ -1,10 +1,10 @@
 {
   "network": "testnet",
   "graphqlUrl": "https://graphql.testnet.sui.io/graphql",
-  "packageId": "0xc74c92119fd9eb424bc048c46941e1c629cb887a35d7d66b5caa6f140db96703",
-  "microgridId": "0xe7582689ccd8aaf9c76ef8a79a3ccb4c5cfb2097d71f772dee846600d4faed67",
-  "microgridInitialSharedVersion": 349181886,
+  "packageId": "0x0ac3b62c02b2b492b965268fe641b000d0dadafad0af028c3f9d5595c176efac",
+  "microgridId": "0x449e995995d499f18217d02a4c32670010945527519f6a72f8d9929b5acca182",
+  "microgridInitialSharedVersion": 349181895,
   "assetId": "type-07-taipei-microgrid-gpu",
-  "publishedAt": "2026-07-31T12:48:13.000Z",
+  "publishedAt": "2026-08-09T04:37:15.832Z",
   "explorer": "https://suiscan.xyz/testnet"
 }
