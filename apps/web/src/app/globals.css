@@ -10,7 +10,7 @@ button, input, select { font: inherit; }
 button { color: inherit; }
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
 .sidebar { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--line); background: rgba(8,10,14,.94); padding: 28px 20px; display: flex; flex-direction: column; }
-.brand { display: flex; align-items: center; gap: 13px; margin: 0 8px 46px; }
+.brand { display: flex; align-items: center; gap: 13px; margin: 0 8px 46px; text-decoration: none; color: inherit; }
 .brand div:last-child { display: grid; gap: 2px; }.brand strong { letter-spacing: .15em; font-size: 17px; }.brand span { color: var(--muted); font-size: 11px; letter-spacing: .04em; }
 .logo { width: 35px; height: 35px; position: relative; transform: rotate(30deg); }.logo i { position: absolute; inset: 3px; border: 1px solid var(--cyan); border-radius: 3px; }.logo i:nth-child(2) { inset: 9px; border-color: #7fc3ff; }.logo i:nth-child(3) { inset: 15px; background: var(--cyan); border: 0; }
 nav { display: grid; gap: 5px; } nav button { border: 0; background: transparent; color: #8c96a6; border-radius: 8px; text-align: left; padding: 11px 12px; cursor: pointer; display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; } nav button span { font-size: 18px; width: 18px; text-align: center; } nav button:hover, nav button.active { color: var(--text); background: #151922; } nav button.active { box-shadow: inset 2px 0 var(--cyan); }
@@ -69,3 +69,14 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 .wallet-tip p { margin: 0 0 6px; }
 .wallet-tip ol { margin-top: 6px; }
 .wallet-tip a { color: var(--cyan); }
+
+/* NothingX strip (console overview) */
+.nothing-strip { margin-bottom: 14px; border: 1px solid #252c35; border-radius: 12px; padding: 14px; background: linear-gradient(160deg, rgba(18,22,29,.96), rgba(10,12,16,.98)); display: grid; gap: 12px; }
+.nothing-strip-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.nothing-strip-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8e99a8; font-family: "SFMono-Regular", Consolas, monospace; }
+.nothing-strip-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.nothing-strip-ksn { display: grid; gap: 8px; }
+.nothing-strip-ksn small { color: #697382; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.nothing-strip-ksn strong { font-size: 22px; letter-spacing: -.03em; color: #f2f5f7; }
+@media (max-width: 1080px) { .nothing-strip-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 720px) { .nothing-strip-grid { grid-template-columns: 1fr; } }

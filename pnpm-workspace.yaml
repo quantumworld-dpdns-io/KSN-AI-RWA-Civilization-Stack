@@ -15,3 +15,6 @@ onlyBuiltDependencies:
 # CVE is not runtime-reachable here, but we patch it to satisfy scanners.
 overrides:
   "tar@<7.5.19": ">=7.5.19"
+
+patchedDependencies:
+  "@dennislee928/nothingx-react-components@1.0.0": patches/@dennislee928__nothingx-react-components@1.0.0.patch

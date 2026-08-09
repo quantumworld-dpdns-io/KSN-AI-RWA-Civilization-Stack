@@ -1,0 +1,30 @@
+diff --git a/tsx/SegmentedDisplay.tsx b/tsx/SegmentedDisplay.tsx
+index b6bdf7fcd4b194265f0ff358c9b347d2cd1a941e..c0aa94321a7930a7965332c11171e0e815c28872 100644
+--- a/tsx/SegmentedDisplay.tsx
++++ b/tsx/SegmentedDisplay.tsx
+@@ -3,7 +3,7 @@
+ import { nothing } from './theme';
+ 
+ /** 七段顯示器：a-g 對應上、右上、右下、下、左下、左上、中 */
+-const SEGMENTS: Record<string, boolean[]> = {
++const SEGMENTS: Record<string, number[]> = {
+   '0': [1,1,1,1,1,1,0],
+   '1': [0,1,1,0,0,0,0],
+   '2': [1,1,0,1,1,0,1],
+diff --git a/tsx/TerminalBlink.tsx b/tsx/TerminalBlink.tsx
+index 2c5bf41291b5d59a997696e094a95eb43a3380b9..35093fdd38ef74d2532652ef8f2e4d57bf959f56 100644
+--- a/tsx/TerminalBlink.tsx
++++ b/tsx/TerminalBlink.tsx
+@@ -1,10 +1,11 @@
+ 'use client';
+ 
++import type { ReactNode } from 'react';
+ import { useEffect, useState } from 'react';
+ import { nothing } from './theme';
+ 
+ /** 裝飾用閃爍方塊 */
+-export function TerminalBlink(props?: { children?: React.ReactNode }) {
++export function TerminalBlink(props: { children?: ReactNode } = {}) {
+   const [on, setOn] = useState(true);
+ 
+   useEffect(() => {

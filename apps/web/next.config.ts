@@ -4,7 +4,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
-  transpilePackages: ["@aks/core"]
+  transpilePackages: ["@aks/core", "@dennislee928/nothingx-react-components"],
+  // three.js / R3F packages ship ESM that Next needs to transpile in standalone builds
+  serverExternalPackages: ["three"],
 };
 
 export default nextConfig;

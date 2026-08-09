@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PillBadge, TerminalBlink } from "@dennislee928/nothingx-react-components";
+import { ConsoleNothingStrip } from "@/components/ConsoleNothingStrip";
 import { SuiMicrogridPanel } from "@/components/SuiMicrogridPanel";
 import { SuiWalletStake } from "@/components/SuiWalletStake";
 import { WalletPanel } from "@/components/wallet-panel";
@@ -105,13 +108,13 @@ export function Dashboard({
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand">
+        <Link href="/" className="brand" aria-label="Back to landing">
           <Logo />
           <div>
             <strong>KSN</strong>
             <span>Civilization Stack</span>
           </div>
-        </div>
+        </Link>
         <nav aria-label="Main navigation">
           <NavButton active={view === "overview"} onClick={() => setView("overview")} icon="◫">
             Overview
@@ -135,7 +138,14 @@ export function Dashboard({
         <div className="sidebar-status">
           <div className="status-row">
             <span className={`status-dot ${health.oracle}`} />
-            Oracle API <b>{health.oracle}</b>
+            <span>
+              Oracle API <b>{health.oracle}</b>
+            </span>
+            {health.oracle === "online" ? (
+              <PillBadge variant="live">Live</PillBadge>
+            ) : (
+              <PillBadge variant="off">Off</PillBadge>
+            )}
           </div>
           <div className="status-row">
             <span
@@ -151,11 +161,13 @@ export function Dashboard({
             />
             HMAC signing <b>{health.signing}</b>
           </div>
-          <small suppressHydrationWarning>
-            Last check
-            <br />
-            {new Date(health.checkedAt).toLocaleString()}
-          </small>
+          <TerminalBlink>
+            <small suppressHydrationWarning>
+              Last check
+              <br />
+              {new Date(health.checkedAt).toLocaleString()}
+            </small>
+          </TerminalBlink>
         </div>
       </aside>
 
@@ -236,6 +248,12 @@ function Overview({
     telemetry.reduce((sum, item) => sum + item.oracleConfidence, 0) / telemetry.length;
   return (
     <>
+      <ConsoleNothingStrip
+        selected={selected}
+        totalPowerWatts={totalPower}
+        avgConfidence={avgConfidence}
+      />
+
       <section className="metric-grid">
         <Metric
           label="Network assets"
