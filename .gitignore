@@ -29,3 +29,4 @@ packages/sui-contracts/Pub.local.toml
 infra/.env.docker
 /mobile/node_modules
 /apps/web/src/generated
+/.ignore

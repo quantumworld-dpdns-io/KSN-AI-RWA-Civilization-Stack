@@ -16,5 +16,7 @@ onlyBuiltDependencies:
 overrides:
   "tar@<7.5.19": ">=7.5.19"
 
+# Keep in sync with package.json#pnpm.patchedDependencies (pnpm 9 reads package.json;
+# some CI images / pnpm 10 prefer workspace).
 patchedDependencies:
   "@dennislee928/nothingx-react-components@1.0.0": patches/@dennislee928__nothingx-react-components@1.0.0.patch

@@ -77,6 +77,10 @@ const out = {
   packageId: demo.packageId,
   microgridId: demo.microgridId,
   ...(microgridInitialSharedVersion == null ? {} : { microgridInitialSharedVersion }),
+  // The AgentCap the server-side agent presents to call
+  // `distribute_planetary_dividend_auto`. Public object id, not a secret — the
+  // capability is only usable by the address that holds it.
+  agentCapId: demo.agentCapId,
   assetId: demo.fixture?.assetId ?? "type-07-taipei-microgrid-gpu",
   publishedAt: demo.updatedAt ?? new Date().toISOString(),
   explorer: EXPLORER_BY_NETWORK[network] ?? EXPLORER_BY_NETWORK.testnet,

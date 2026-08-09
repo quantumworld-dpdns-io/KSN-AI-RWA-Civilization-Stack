@@ -81,6 +81,46 @@ main { min-width: 0; width: min(1420px, 100%); margin: 0 auto; padding: 36px 42p
 @media (max-width: 1080px) { .nothing-strip-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 720px) { .nothing-strip-grid { grid-template-columns: 1fr; } }
 
+/* Datacenter Builder (/build) */
+.builder-shell { min-height: 100vh; width: min(1560px, 100%); margin: 0 auto; padding: 30px clamp(16px, 3vw, 42px) 60px; }
+.builder-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 22px; }
+.builder-head small { display: block; color: #626c79; font-size: 10px; text-transform: uppercase; font-weight: 800; letter-spacing: .13em; margin-bottom: 8px; }
+.builder-head h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -.03em; }
+.builder-head p { margin: 0; color: #8b95a2; font-size: 13px; line-height: 1.6; max-width: 68ch; }
+.builder-nav { display: flex; gap: 16px; }
+.builder-nav a { color: #9aa4b0; text-decoration: none; font-size: 13px; font-weight: 600; }
+.builder-nav a:hover { color: var(--cyan); }
+.builder-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); gap: 12px; align-items: start; }
+.builder-col { display: grid; gap: 12px; align-content: start; min-width: 0; }
+
+/* Efficiency gauge — the "crosses 85" moment */
+.gauge { margin-bottom: 20px; }
+.gauge-head { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 12px; }
+.gauge-head small { display: block; color: #717b89; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.gauge-value { display: block; margin-top: 6px; font: 700 38px/1 "SFMono-Regular", Consolas, monospace; letter-spacing: -.04em; color: #d9dee4; transition: color .4s ease; }
+.gauge-value.crossed { color: var(--cyan); text-shadow: 0 0 22px rgba(105,231,213,.4); }
+.gauge-track { position: relative; height: 14px; background: #171c24; border: 1px solid #242a34; border-radius: 99px; overflow: visible; }
+.gauge-fill { position: absolute; inset: 0 auto 0 0; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #4c5a6b, #7d8c9e); transition: width .6s cubic-bezier(.2,.8,.3,1), background .6s ease; }
+.gauge-fill.crossed { background: linear-gradient(90deg, #3bbfa8, var(--cyan)); box-shadow: 0 0 18px rgba(105,231,213,.35); }
+.gauge-projected { position: absolute; inset: 0 auto 0 0; height: 100%; border-radius: 99px; background: repeating-linear-gradient(45deg, rgba(105,231,213,.16) 0 6px, transparent 6px 12px); }
+.gauge-marker { position: absolute; top: -7px; bottom: -7px; width: 2px; background: #eabf74; }
+.gauge-marker span { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); color: #eabf74; font: 700 10px "SFMono-Regular", monospace; }
+.gauge-note { color: #7d8794; font-size: 11px; line-height: 1.55; margin: 22px 0 0; }
+
+/* Split-screen agent terminal */
+.terminal-panel { position: sticky; top: 18px; display: grid; align-content: start; }
+.terminal { border: 1px solid #1f262f; border-radius: 9px; background: #05080b; padding: 12px; height: 460px; overflow-y: auto; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.65; }
+.terminal-line { margin: 0 0 3px; color: #8e99a8; word-break: break-word; }
+.terminal-line.action { color: #eabf74; }
+.terminal-line.success { color: var(--cyan); }
+.terminal-line.warn { color: #d3a25c; }
+.terminal-line.error { color: #ff7a87; }
+.terminal-time { color: #4c5563; margin-right: 10px; }
+@media (max-width: 1080px) {
+  .builder-grid { grid-template-columns: 1fr; }
+  .terminal-panel { position: static; }
+}
+
 /* Architecture mermaid (overview) */
 .architecture-panel { margin-bottom: 14px; }
 .architecture-blurb { color: #8993a1; font-size: 12px; line-height: 1.6; margin: -6px 0 16px; max-width: 72ch; }
